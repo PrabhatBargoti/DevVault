@@ -12,7 +12,7 @@ import Setting from './Pages/Setting'
 
 const App = () => {
   return (
-    <div>
+    <div className='bg-[#0B0D12]'>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/Signup" element={<SignUp />} />
