@@ -2,8 +2,20 @@ import React from "react";
 import SEO from "../Components/SEO";
 import ButtonDark from "../Components/ButtonDark";
 import ButtonPurple from "../Components/ButtonPurple";
+import { useNavigate } from "react-router-dom";
 
 const Page404 = () => {
+
+  const navigate = useNavigate()
+
+  const gotohome = () => {
+    navigate('/Home')
+  }
+
+  const gotosnippet = () => {
+    navigate('/Snippet')
+  }
+
   return (
     <>
       <SEO
@@ -17,8 +29,12 @@ const Page404 = () => {
         <span className="text-[#E7E9EE] text-3xl font-bold my-10">This page isn’t in the vault</span>
         <p className="text-[#8B93A7]">The link may be out of date, or the snippet was deleted.</p>
         <div className="flex flex-row justify-center-safe ">
+          <span onClick={gotosnippet}>
         <ButtonDark name={"Browser Snippets"} />
+          </span>
+        <span onClick={gotohome}>
         <ButtonPurple name={"Go to Dashboard"} />
+        </span>
         </div>
       </div>
     </>
