@@ -9,7 +9,7 @@ const LandingPage = () => {
         description="Save, organize, and find your code snippets, notes, and developer knowledge in one powerful vault."
         path="/"
       />
-      <div></div>
+      <div>Landing Page</div>
     </>
   );
 };

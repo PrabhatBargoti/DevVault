@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 
 function SEO({ title, description, path = "", noIndex = false }) {
   const siteName = "DevVault";
-  const siteUrl = "https://your-domain.com";
+  const siteUrl = "https://devvault-dev.vercel.app/";
   const fullTitle = title ? `${siteName} - ${title}` : siteName;
   const url = `${siteUrl}${path}`;
 

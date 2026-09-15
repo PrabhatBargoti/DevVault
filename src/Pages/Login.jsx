@@ -1,4 +1,5 @@
 import React from "react";
+import SEO from "../Components/SEO";
 
 const Login = () => {
   return (
@@ -9,7 +10,7 @@ const Login = () => {
         path="/login"
         noIndex
       />
-      <div></div>
+      <div>Login</div>
     </>
   );
 };
