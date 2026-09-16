@@ -3,6 +3,7 @@ import SEO from "../Components/SEO";
 import LandingNav from '../Pages/LandingPage/LandingNav';
 import LandingHero from '../Pages/LandingPage/LandingHero';
 import LandingSnippet from '../Pages/LandingPage/LandingSnippet';
+import LandingSolution from '../Pages/LandingPage/LandingSolution';
 
 const LandingPage = () => {
     return (
@@ -15,6 +16,7 @@ const LandingPage = () => {
             <LandingNav />
             <LandingHero />
             <LandingSnippet/>
+            <LandingSolution />
         </div>
     )
 }
