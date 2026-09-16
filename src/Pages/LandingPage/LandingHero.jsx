@@ -24,7 +24,7 @@ const LandingHero = () => {
           Save it once. Find it instantly. Build faster. Code snippets,
           commands, and fixes — kept in one place you actually search.
         </p>
-        <div className=" flex items-center justify-center gap-3">
+        <div className=" flex items-center justify-center gap-3 mt-8">
           <span onClick={gotoSign}>
           <ButtonPurple name={"Get started free"} className="w-auto" />
           </span>
