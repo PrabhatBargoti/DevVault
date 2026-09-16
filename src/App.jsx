@@ -1,6 +1,5 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
-import LandingPage from './Pages/LandingPage'
 import SignUp from './Pages/SignUp'
 import Login from './Pages/Login'
 import Home from './Pages/Home'
@@ -9,10 +8,11 @@ import Tags from './Pages/Tags'
 import Categorie from './Pages/Categorie'
 import Page404 from './Pages/Page404'
 import Setting from './Pages/Setting'
+import LandingPage from './Layouts/LandingPage'
 
 const App = () => {
   return (
-    <div className='bg-[#0B0D12]'>
+    <div className='bg-[#0B0D12] selection:bg-[#1C2029]'>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/Signup" element={<SignUp />} />
