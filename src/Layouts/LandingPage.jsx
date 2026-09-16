@@ -4,6 +4,9 @@ import LandingNav from '../Pages/LandingPage/LandingNav';
 import LandingHero from '../Pages/LandingPage/LandingHero';
 import LandingSnippet from '../Pages/LandingPage/LandingSnippet';
 import LandingSolution from '../Pages/LandingPage/LandingSolution';
+import LandingHowItWork from '../Pages/LandingPage/LandingHowItWork';
+import LandingOpenSource from '../Pages/LandingPage/LandingOpenSource';
+import LandingFooter from '../Pages/LandingPage/LandingFooter';
 
 const LandingPage = () => {
     return (
@@ -17,6 +20,9 @@ const LandingPage = () => {
             <LandingHero />
             <LandingSnippet/>
             <LandingSolution />
+            <LandingHowItWork />
+            <LandingOpenSource />
+            <LandingFooter />
         </div>
     )
 }
