@@ -12,7 +12,7 @@ const LandingHero = () => {
   }
 
   return (
-    <section className="min-h-screen bg-[#0B0D12] flex items-center justify-center px-6 -mt-16">
+    <section className="min-h-screen flex items-center justify-center px-6">
       <div className="flex flex-col items-center text-center max-w-2xl">
         <h1 className="text-[#E7E9EE] font-bold text-5xl sm:text-6xl leading-[1.1] tracking-tight">
           Your developer
@@ -29,7 +29,7 @@ const LandingHero = () => {
           <ButtonPurple name={"Get started free"} className="w-auto" />
           </span>
           <a href="https://github.com/PrabhatBargoti/DevVault" target="_blank" rel="noopener noreferrer">
-          <ButtonDark name={"View on GitHub"} className="w-auto" />
+          <ButtonDark name={"View on GitHub"} img={'../../../public/github.svg'} className="w-auto" />
           </a>
         </div>
       </div>

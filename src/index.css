@@ -7,4 +7,6 @@
 
 body {
     font-family: var(--font-ui);
+    background: #0B0D12;
+    color: #E7E9EE;
 }

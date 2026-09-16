@@ -20,10 +20,10 @@ const LandingNav = () => {
     };
 
     return (
-        <section className="relative flex flex-row items-center justify-between px-8 h-16 bg-[#0B0B0F] border-b border-white/5">
+        <section className="relative flex flex-row items-center justify-between px-8 h-16 border-b border-white/5">
             <div className="flex items-center gap-2">
                 <img src="/Logo.svg" alt="DevVault" className="h-10 w-10 select-none" />
-                <span className="text-[#E7E9EE] text-2xl font-semibold">Dev<span className='text-[#6E6BF4]'>Vault</span></span>
+                <span className="text-2xl font-semibold">Dev<span className='text-[#6E6BF4]'>Vault</span></span>
             </div>
 
             <nav className="hidden md:flex flex-row justify-center gap-10 items-center text-[#8B93A7] text-sm absolute left-1/2 -translate-x-1/2">
