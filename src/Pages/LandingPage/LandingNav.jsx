@@ -2,7 +2,6 @@ import React from 'react'
 import ButtonDark from "../../Components/ButtonDark";
 import ButtonPurple from "../../Components/ButtonPurple";
 import { useNavigate } from "react-router-dom";
-import Theme from '../../Components/Theme';
 
 const LandingNav = () => {
     const navigate = useNavigate();
@@ -48,7 +47,6 @@ const LandingNav = () => {
             </nav>
 
             <div className="flex flex-row items-center">
-                <Theme/>
                 <span onClick={gotoLog}>
                     <ButtonDark name={"Log in"} />
                 </span>

@@ -1,6 +1,6 @@
 import React from "react";
-import ButtonDark from "../../Components/ButtonDark";
-import ButtonPurple from "../../Components/ButtonPurple";
+import BigDarkBtn from "../../Components/BigDarkBtn";
+import BigPurpleBtn from "../../Components/BigPurpleBtn";
 import { useNavigate } from "react-router-dom";
 
 const LandingHero = () => {
@@ -13,7 +13,7 @@ const LandingHero = () => {
 
   return (
     <section className="min-h-screen flex items-center justify-center px-6">
-      <div className="flex flex-col items-center text-center max-w-2xl">
+      <div className="flex flex-col items-center text-center max-w-2xl -mt-10">
         <h1 className="text-[#E7E9EE] font-bold text-5xl sm:text-6xl leading-[1.1] tracking-tight">
           Your developer
           <br />
@@ -26,10 +26,10 @@ const LandingHero = () => {
         </p>
         <div className=" flex items-center justify-center gap-3 mt-8">
           <span onClick={gotoSign}>
-          <ButtonPurple name={"Get started free"} className="w-auto" />
+          <BigPurpleBtn name={"Get started free"} className="w-auto" />
           </span>
           <a href="https://github.com/PrabhatBargoti/DevVault" target="_blank" rel="noopener noreferrer">
-          <ButtonDark name={"View on GitHub"} img={'../../../public/github.svg'} className="w-auto" />
+          <BigDarkBtn name={"View on GitHub"} img={'../../../public/github.svg'} className="w-auto" />
           </a>
         </div>
       </div>
