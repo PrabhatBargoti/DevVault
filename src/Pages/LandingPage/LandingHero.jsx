@@ -29,7 +29,7 @@ const LandingHero = () => {
           <BigPurpleBtn name={"Get started free"} className="w-auto" />
           </span>
           <a href="https://github.com/PrabhatBargoti/DevVault" target="_blank" rel="noopener noreferrer">
-          <BigDarkBtn name={"View on GitHub"} img={'/github.png'} className="w-auto" />
+          <BigDarkBtn name={"View on GitHub"} className="w-auto" />
           </a>
         </div>
       </div>
