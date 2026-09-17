@@ -1,16 +1,129 @@
-# React + Vite
+# DevVault
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+DevVault is a developer-first knowledge vault built to help you store, organize, and revisit code snippets, commands, notes, and technical solutions in one place.
 
-Currently, two official plugins are available:
+The project is currently built as a React + Vite application with a dark UI and route-based page structure, and is designed to evolve into a more complete personal knowledge base for developers.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Highlights
 
-## React Compiler
+- Save and organize reusable developer knowledge in a clean UI
+- Landing page marketing experience for the product
+- Auth flow pages for login and signup
+- Route-based structure for app pages like Home, Snippets, Tags, Categories, and Settings
+- SEO metadata support for public pages
+- Open-source friendly project structure for contributors
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the Oxlint configuration
+- React 19
+- Vite
+- Tailwind CSS
+- React Router DOM
+- React Helmet Async
+- Lucide icons
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Project Status
+
+This repository is in an early product stage. The landing page and authentication screens are implemented, while several app pages are scaffolded and ready for feature development.
+
+## Project Structure
+
+```text
+devvault/
+├── public/
+│   ├── Logo.svg
+│   ├── robots.txt
+│   └── sitemap.xml
+├── src/
+│   ├── App.jsx
+│   ├── index.css
+│   ├── main.jsx
+│   ├── Components/
+│   │   ├── BigDarkBtn.jsx
+│   │   ├── BigPurpleBtn.jsx
+│   │   ├── ButtonDark.jsx
+│   │   ├── ButtonPurple.jsx
+│   │   ├── Logo.jsx
+│   │   └── SEO.jsx
+│   ├── Layouts/
+│   │   └── LandingPage.jsx
+│   ├── Pages/
+│   │   ├── Categorie.jsx
+│   │   ├── ForgetPass.jsx
+│   │   ├── Home.jsx
+│   │   ├── LandingPage/
+│   │   ├── Login.jsx
+│   │   ├── Page404.jsx
+│   │   ├── Setting.jsx
+│   │   ├── SignUp.jsx
+│   │   ├── Snippet.jsx
+│   │   └── Tags.jsx
+│   └── Utils/
+│       └── NavItem.jsx
+├── index.html
+├── package.json
+├── vite.config.js
+├── README.md
+├── vercel.json
+└── contribution.md
+```
+
+## Main Routes
+
+The app currently includes the following route structure:
+
+- `/` — landing page
+- `/Login` — login screen
+- `/Signup` — signup screen
+- `/Home` — home dashboard placeholder
+- `/Snippet` — snippet page
+- `/Tags` — tags page
+- `/Categorie` — categories page
+- `/Setting` — settings page
+- `/forgot-password` — forgot password page
+- `*` — 404 page
+
+## Getting Started
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Start the development server
+
+```bash
+npm run dev
+```
+
+### 3. Build for production
+
+```bash
+npm run build
+```
+
+### 4. Preview the production build
+
+```bash
+npm run preview
+```
+
+## Development Notes
+
+- Styling is handled with Tailwind utility classes.
+- Reusable UI patterns live in the Components folder.
+- SEO metadata is centralized through the `SEO` component.
+- The project uses a dark, developer-focused design language with purple accent colors.
+
+## Contribution
+
+Please read [contribution.md](contribution.md) before opening a pull request.
+
+## License
+
+This project currently does not specify a license file. If you plan to distribute or reuse this project publicly, add a proper open-source license before release.
+
+## About the Project
+
+DevVault aims to become a personal and team-ready vault for code snippets, system commands, technical notes, and reusable development knowledge. It is intentionally designed with a clean, minimal, and focused interface so developers can quickly capture and retrieve important information without friction.
