@@ -7,6 +7,7 @@ import LandingSolution from '../Pages/LandingPage/LandingSolution';
 import LandingHowItWork from '../Pages/LandingPage/LandingHowItWork';
 import LandingOpenSource from '../Pages/LandingPage/LandingOpenSource';
 import LandingFooter from '../Pages/LandingPage/LandingFooter';
+import LandingCTA from '../Pages/LandingPage/LandingCTA';
 
 const LandingPage = () => {
     return (
@@ -16,13 +17,20 @@ const LandingPage = () => {
                 description="Save, organize, and find your code snippets, notes, and developer knowledge in one powerful vault."
                 path="/"
             />
-            <LandingNav />
-            <LandingHero />
-            <LandingSnippet/>
-            <LandingSolution />
-            <LandingHowItWork />
-            <LandingOpenSource />
-            <LandingFooter />
+            <header className='sticky top-0 z-50 bg-[#0B0D12]/80 backdrop-blur-md'>
+                <LandingNav />
+            </header>
+            <main>
+                <LandingHero />
+                <LandingSnippet />
+                <LandingSolution />
+                <LandingHowItWork />
+                <LandingOpenSource />
+                <LandingCTA />
+            </main>
+            <footer>
+                <LandingFooter />
+            </footer>
         </div>
     )
 }

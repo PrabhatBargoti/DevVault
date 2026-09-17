@@ -12,9 +12,9 @@ const LandingHero = () => {
   }
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-6">
+    <section id="Hero" className="min-h-screen flex items-center justify-center px-6">
       <div className="flex flex-col items-center text-center max-w-2xl -mt-10">
-        <h1 className="text-[#E7E9EE] font-bold text-5xl sm:text-6xl leading-[1.1] tracking-tight">
+        <h1 className="text-[#E7E9EE] font-bold text-6xl leading-[1.1] tracking-tight">
           Your developer
           <br />
           knowledge vault.

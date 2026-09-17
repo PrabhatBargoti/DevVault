@@ -20,9 +20,9 @@ const cards = [
 
 const LandingHowItWork = () => {
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#0B0D12] gap-14 py-20 -mt-40">
+    <section id='how-it-works' className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#0B0D12] gap-14 py-20 -mt-40">
       <div className="flex flex-col items-center text-center max-w-2xl">
-        <h1 className="text-[#E7E9EE] font-bold text-5xl sm:text-5xl leading-[1.1] tracking-tight">
+        <h1 className="text-[#E7E9EE] font-bold text-5xl leading-[1.1] tracking-tight">
           How it works
         </h1>
 
