@@ -19,8 +19,8 @@ const LandingNav = () => {
     };
 
     return (
-        <section className="flex w-full flex-row items-center justify-between px-8 h-16 border-b border-white/5 cursor-pointer">
-            <div className="flex items-center gap-2" onClick={() => scrollToSection("Hero")}>
+        <section className="flex w-full flex-row items-center justify-between px-8 h-16 border-b border-white/5">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection("Hero")}>
                 <img src="/Logo.svg" alt="DevVault" className="h-10 w-10 select-none" />
                 <span className="text-2xl font-semibold">Dev<span className='text-[#6E6BF4]'>Vault</span></span>
             </div>

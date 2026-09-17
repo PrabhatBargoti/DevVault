@@ -31,7 +31,7 @@ const Page404 = () => {
         <p className="text-[#8B93A7]">
           The link may be out of date, or the snippet was deleted.
         </p>
-        <div className="flex flex-row justify-center-safe">
+        <div className="flex flex-row justify-center-safe mt-10">
           <span onClick={gotosnippet}>
             <ButtonDark name={"Browser Snippets"} />
           </span>
