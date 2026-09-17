@@ -9,6 +9,7 @@ import Categorie from './Pages/Categorie'
 import Page404 from './Pages/Page404'
 import Setting from './Pages/Setting'
 import LandingPage from './Layouts/LandingPage'
+import ForgetPass from './Pages/ForgetPass'
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/Tags" element={<Tags />} />
         <Route path="/Categorie" element={<Categorie />} />
         <Route path="/Setting" element={<Setting />} />
+        <Route path="/forgot-password" element={<ForgetPass />} />
         <Route path="*" element={<Page404 />} />
       </Routes>
     </div>

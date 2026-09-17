@@ -118,7 +118,7 @@ npm run preview
 
 ## Contribution
 
-Please read [contribution.md](contribution.md) before opening a pull request.
+Please read [CONTRIBUTION.md](contribution.md) before opening a pull request.
 
 ## License
 
