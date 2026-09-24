@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /Login
+Disallow: /Signup
+Disallow: /Home
+Disallow: /Snippet
+Disallow: /Tags
+Disallow: /Categorie
+Disallow: /Setting
+
+Sitemap: https://devvault-dev.vercel.app/sitemap.xml

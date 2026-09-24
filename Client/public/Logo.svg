@@ -1,0 +1,82 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 600 450"
+  fill="none"
+>
+  <!-- Outer D / Vault Frame -->
+  <path
+    d="M95 70
+       H300
+       C430 70 520 150 520 225
+       C520 300 430 380 300 380
+       H95
+       V285
+       L300 330
+       C365 330 410 285 410 225
+       C410 165 365 120 300 120
+       L95 165
+       V70Z"
+    fill="#7B61FF"
+  />
+
+  <!-- Vault Door -->
+  <path
+    d="M95 175
+       L285 130
+       C300 126 315 138 315 153
+       V297
+       C315 312 300 324 285 320
+       L95 275
+       V175Z"
+    fill="#7B61FF"
+  />
+
+  <!-- Top / Bottom Negative Space -->
+  <path
+    d="M95 165 L300 120
+       C365 120 410 165 410 225
+       C410 285 365 330 300 330
+       L95 285"
+    stroke="transparent"
+  />
+
+  <!-- Hinge -->
+  <rect
+    x="330"
+    y="155"
+    width="24"
+    height="55"
+    rx="12"
+    fill="#7B61FF"
+  />
+
+  <rect
+    x="330"
+    y="240"
+    width="24"
+    height="55"
+    rx="12"
+    fill="#7B61FF"
+  />
+
+  <!-- Lock -->
+  <circle
+    cx="400"
+    cy="225"
+    r="48"
+    fill="#7B61FF"
+  />
+
+  <!-- Keyhole -->
+  <circle
+    cx="400"
+    cy="211"
+    r="12"
+    fill="#000"
+  />
+
+  <path
+    d="M393 218 H407 L405 250 H395 Z"
+    fill="#000"
+  />
+</svg>
