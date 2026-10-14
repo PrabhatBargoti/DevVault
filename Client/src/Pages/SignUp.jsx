@@ -1,6 +1,6 @@
 import React from "react";
 import SEO from "../Components/SEO";
-import Logo from "../Components/Logo";
+import HomeShortcut from "../Components/HomeShortcut";
 
 const SignUp = () => {
   return (
@@ -13,9 +13,6 @@ const SignUp = () => {
       />
       <div className="min-h-screen bg-[#0B0D12] flex flex-col items-center justify-center px-4 py-10 sm:px-6">
         <header className="flex flex-col items-center gap-8 mb-5">
-          <a href="/" rel="noopener noreferrer">
-              <Logo />
-              </a>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-[#E7E9EE]">Create your vault</h1>
             <p className="mt-1.5 text-sm text-[#8B93A7]">Free, open source, yours</p>
@@ -105,6 +102,7 @@ const SignUp = () => {
           </p>
         </main>
       </div>
+      <HomeShortcut />
     </>
   );
 };

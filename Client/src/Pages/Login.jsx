@@ -1,6 +1,6 @@
 import React from "react";
 import SEO from "../Components/SEO";
-import Logo from "../Components/Logo";
+import HomeShortcut from "../Components/HomeShortcut";
 
 const Login = () => {
   return (
@@ -14,9 +14,6 @@ const Login = () => {
       <div className="relative z-10 flex min-h-screen items-center justify-center overflow-x-hidden px-4 py-10 sm:px-6">
         <div className="w-full max-w-110">
           <header className="mb-5 flex flex-col items-center gap-8">
-            <a href="/" rel="noopener noreferrer">
-              <Logo />
-            </a>
             <div className="text-center">
               <h1 className="text-3xl sm:text-[2.2rem] font-semibold tracking-tighter text-[#E7E9EE]">
                 Welcome back
@@ -95,6 +92,7 @@ const Login = () => {
           </p>
         </div>
       </div>
+      <HomeShortcut />
     </>
   );
 };
