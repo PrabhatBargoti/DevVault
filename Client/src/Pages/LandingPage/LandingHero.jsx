@@ -23,7 +23,7 @@ const LandingHero = () => {
           Save it once. Find it instantly. Build faster. Code snippets, commands, and fixes — kept in one place you actually search.
         </p>
         <div className=" flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center mt-5">
-          <BigPurpleBtn name="Get started free" className="w-full sm:w-auto" onClick={gotoSign} />
+          <BigPurpleBtn name="Get started free" className="w-full sm:w-auto cursor-pointer" onClick={gotoSign} />
           <a href="https://github.com/PrabhatBargoti/DevVault" className="rounded-xl border-2 border-[#232733] bg-[#12151C] px-5 py-3 font-semibold transition-colors hover:bg-[#1C2029]" target="_blank" rel="noopener noreferrer">View on GitHub</a>
         </div>
       </div>

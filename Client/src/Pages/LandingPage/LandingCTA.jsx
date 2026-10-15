@@ -16,7 +16,7 @@ const LandingCTA = () => {
         <h1 className="text-[#E7E9EE] font-bold text-3xl leading-[1.1] sm:text-4xl tracking-tight">
           Stop re-solving the same problem.
         </h1>
-        <div className="mt-8"><BigPurpleBtn name="Get started free" onClick={gotoSign} /></div>
+        <div className="mt-8"><BigPurpleBtn name="Get started free" className='cursor-pointer' onClick={gotoSign} /></div>
       </div>
     </section>
   )

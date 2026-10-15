@@ -22,8 +22,8 @@ const LandingNav = () => {
             </nav>
 
             <div className="flex shrink-0 items-center gap-2">
-                <ButtonDark name="Log in" className="hidden sm:block" onClick={() => navigate("/Login")} />
-                <ButtonPurple name="Get started" onClick={() => navigate("/Signup")} />
+                <ButtonDark name="Log in" className="hidden sm:block cursor-pointer" onClick={() => navigate("/Login")} />
+                <ButtonPurple name="Get started" className='cursor-pointer' onClick={() => navigate("/Signup")} />
             </div>
         </section>
     )

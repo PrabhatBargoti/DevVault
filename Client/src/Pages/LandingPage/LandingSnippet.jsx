@@ -49,7 +49,7 @@ const LandingSnippet = () => {
               <p className="mt-1.5 text-sm text-[#6E6BF4]">8 snippets in your vault</p>
             </div>
             <div className='self-start sm:self-auto'>
-            <BigPurpleBtn name={"New snippet"} />
+            <BigPurpleBtn className='cursor-pointer' name={"New snippet"} />
             </div>
           </div>
 
