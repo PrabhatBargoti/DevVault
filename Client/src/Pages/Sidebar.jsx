@@ -20,7 +20,9 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="relative z-20 flex w-full flex-col border-b border-[#232733] bg-[#0B0D12] p-3 font-sans md:min-h-dvh md:w-64 md:shrink-0 md:justify-between md:border-b-0 md:border-r md:p-4">
+    <aside
+      className={`${isMenuOpen ? 'fixed inset-0 z-50 h-dvh w-full justify-between overflow-y-auto' : 'relative w-full'} flex flex-col border-b border-[#232733] bg-[#0B0D12] p-3 font-sans md:relative md:inset-auto md:z-20 md:h-auto md:min-h-dvh md:w-64 md:shrink-0 md:justify-between md:overflow-visible md:border-b-0 md:border-r md:p-4`}
+    >
       <div>
         <div className="flex items-center justify-between px-1 py-1 md:mb-4 md:px-2 md:py-2">
           <button type="button" className="flex shrink-0 cursor-pointer items-center gap-2" onClick={gotohome} aria-label="Go to DevVault home">
