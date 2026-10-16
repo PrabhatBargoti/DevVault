@@ -1,8 +1,16 @@
 import React from "react";
 import SEO from "../Components/SEO";
 import HomeShortcut from "../Components/HomeShortcut";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+
+  const nav = useNavigate()
+
+  const signup = () => {
+    nav('/Signup')
+  }
+
   return (
     <>
       <SEO
@@ -86,9 +94,9 @@ const Login = () => {
           </main>
           <p className="mt-6 text-center text-sm text-[#8B93A7]">
             Don&apos;t have an account?{" "}
-            <a href="/signup" className="font-semibold text-[#6E6BF4] transition-colors hover:text-[#8280F7]">
+            <button onClick={signup} className="font-semibold text-[#6E6BF4] transition-colors hover:text-[#8280F7] cursor-pointer">
               Sign up
-            </a>
+            </button>
           </p>
         </div>
         <HomeShortcut />
