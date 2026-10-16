@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Archive, Search, Bell, Plus } from 'lucide-react'
+import { Archive, Search, Plus } from 'lucide-react'
 
 const getAvatarDetails = (user) => {
   const metadata = user?.user_metadata || user?.userMetadata || {}
@@ -72,6 +72,10 @@ const ProfileAvatar = ({ user }) => {
 }
 
 const DashboardHeader = ({ user }) => {
+  const nav = useNavigate();
+  const profile = () => {
+    nav('/Setting')
+  }
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('search') || '')
@@ -102,7 +106,7 @@ const DashboardHeader = ({ user }) => {
         <button type="submit" className="sr-only">Search snippets</button>
       </form>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3 cursor-pointer" onClick={profile}>
         <ProfileAvatar user={user} />
       </div>
     </header>

@@ -1,8 +1,7 @@
 import React from 'react'
 import SEO from "../Components/SEO";
-import HomeEmpty from '../Pages/Homepage/HomeEmpty';
-import HomeFill from '../Pages/Homepage/HomeFill';
 import Sidebar from '../Pages/Sidebar';
+import HomeEmpty from '../Pages/Homepage/HomeEmpty/HomeEmpty';
 
 const Home = () => {
   return (
