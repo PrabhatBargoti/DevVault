@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import SEO from "../Components/SEO";
 import Logo from "../Components/Logo";
+import { useNavigate } from "react-router-dom";
+import HomeShortcut from "../Components/HomeShortcut";
 
 const ForgetPass = () => {
   const [sent, setSent] = useState(false);
@@ -10,6 +12,12 @@ const ForgetPass = () => {
     e.preventDefault();
     setSent(true);
   };
+
+  const nav = useNavigate()
+
+  const login = () => {
+    nav('/Login')
+  }
 
   return (
     <>
@@ -23,9 +31,6 @@ const ForgetPass = () => {
       <div className="relative z-10 flex min-h-screen items-center justify-center overflow-x-hidden bg-[#0B0D12] px-4 py-10 sm:px-6">
         <div className="w-full max-w-110">
           <header className="mb-8 flex flex-col items-center gap-8">
-            <a href="/" rel="noopener noreferrer">
-              <Logo />
-            </a>
             <div className="text-center">
               <h1 className="text-3xl sm:text-[2.2rem] font-semibold tracking-tighter text-[#E7E9EE]">
                 {sent ? "Check your inbox" : "Reset your password"}
@@ -35,7 +40,7 @@ const ForgetPass = () => {
               </p>
             </div>
           </header>
-          <main className="rounded-[20px] border border-[#232733] bg-[#121820]/90 p-5 sm:p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+          <main className="rounded-[20px] border border-[#232733] bg-[#12151C] p-5 sm:p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
             {sent ? (
               <div className="flex flex-col items-center gap-5 py-2">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1A2E24] text-[#4FBF8B]">
@@ -58,7 +63,7 @@ const ForgetPass = () => {
             ) : (
               <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                 <div>
-                  <label htmlFor="email" className="mb-2 block text-sm font-semibold text-[#E7E9EE]">
+                  <label htmlFor="email" className="block text-sm font-semibold text-[#E7E9EE] mb-2">
                     Email
                   </label>
                   <input
@@ -74,7 +79,7 @@ const ForgetPass = () => {
 
                 <button
                   type="submit"
-                  className="mt-1 w-full rounded-xl border border-[#5E5AE6] bg-[#6E6BF4] px-4 py-3 text-lg font-semibold text-white transition-all duration-200 hover:bg-[#8280F7] active:scale-[0.99]"
+                  className="w-full rounded-lg bg-[#6E6BF4] hover:bg-[#8280F7] py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200 active:scale-[0.99]"
                 >
                   Send reset link
                 </button>
@@ -83,11 +88,12 @@ const ForgetPass = () => {
           </main>
 
           <p className="mt-6 text-center text-sm">
-            <a href="/login" className="font-semibold text-[#6E6BF4] transition-colors hover:text-[#8280F7]">
+            <button onClick={login} className="font-semibold text-[#6E6BF4] transition-colors hover:text-[#8280F7] cursor-pointer">
               Back to log in
-            </a>
+            </button>
           </p>
         </div>
+        <HomeShortcut />
       </div>
     </>
   );
