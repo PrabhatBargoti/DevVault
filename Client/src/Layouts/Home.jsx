@@ -6,7 +6,7 @@ import Sidebar from '../Pages/Sidebar';
 
 const Home = () => {
   return (
-    <>
+    <div className="flex min-h-dvh flex-col md:flex-row">
       <SEO
         title="Home"
         description="Your DevVault workspace for managing code snippets, tags, categories, and developer knowledge."
@@ -14,9 +14,10 @@ const Home = () => {
         noIndex
       />
       <Sidebar />
-      <HomeEmpty />
-      <HomeFill />
-    </>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <HomeEmpty />
+      </div>
+    </div>
   )
 }
 
