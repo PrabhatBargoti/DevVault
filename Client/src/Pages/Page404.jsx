@@ -3,6 +3,7 @@ import SEO from "../Components/SEO";
 import ButtonDark from "../Components/ButtonDark";
 import ButtonPurple from "../Components/ButtonPurple";
 import { useNavigate } from "react-router-dom";
+import { Archive } from "lucide-react";
 
 const Page404 = () => {
   const navigate = useNavigate();
@@ -23,19 +24,45 @@ const Page404 = () => {
         path="*"
         noIndex
       />
-      <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12 text-center">
-        <h1 className="text-7xl sm:text-8xl font-bold text-[#6E6BF4]">404</h1>
-        <span className="my-6 text-2xl font-bold text-[#E7E9EE] sm:my-10 sm:text-3xl">
-          This page isn't available in the vault
-        </span>
-        <p className="text-[#8B93A7]">
-          The link may be out of date, or the snippet was deleted.
-        </p>
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:mt-10 sm:flex-row">
-          <ButtonDark name="Browse snippets" onClick={gotosnippet} />
-          <ButtonPurple name="Go to dashboard" onClick={gotohome} />
-        </div>
-      </div>
+      <main className="relative isolate flex min-h-dvh items-center justify-center overflow-hidden bg-[#0B0D12] px-4 py-10 sm:px-6">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-112 w-[min(90vw,38rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6E6BF4]/10 blur-3xl"
+        />
+
+        <section className="w-full max-w-xl rounded-3xl border border-[#232733] bg-[#12151C]/90 p-6 text-center shadow-2xl shadow-black/30 backdrop-blur sm:p-10">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#6E6BF4]/25 bg-[#6E6BF4]/10 text-[#9290FF]">
+            <Archive aria-hidden="true" size={25} strokeWidth={1.8} />
+          </div>
+
+          <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-[#9290FF]">
+            Lost in the vault
+          </p>
+          <h1 className="mt-3 text-6xl font-bold tracking-tight text-[#E7E9EE] sm:text-7xl">
+            404
+          </h1>
+          <h2 className="mt-4 text-xl font-semibold leading-snug text-[#E7E9EE] sm:text-2xl">
+            This page isn’t available
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#8B93A7] sm:text-base">
+            The link may be out of date, or the snippet may have been deleted.
+            Let’s get you back to something useful.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <ButtonPurple
+              name="Go to dashboard"
+              onClick={gotohome}
+              className="w-full px-5 py-3 sm:w-auto"
+            />
+            <ButtonDark
+              name="Browse snippets"
+              onClick={gotosnippet}
+              className="w-full px-5 py-3 sm:w-auto"
+            />
+          </div>
+        </section>
+      </main>
     </>
   );
 };

@@ -16,9 +16,9 @@ const LandingNav = () => {
             </button>
 
             <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 text-sm text-[#8B93A7] lg:flex">
-                <button type="button" className="transition-colors hover:text-white" onClick={() => scrollToSection("features")}>Features</button>
-                <button type="button" className="transition-colors hover:text-white" onClick={() => scrollToSection("how-it-works")}>How it works</button>
-                <button type="button" className="transition-colors hover:text-white" onClick={() => scrollToSection("open-source")}>Open source</button>
+                <button type="button" className="transition-colors hover:text-white cursor-pointer" onClick={() => scrollToSection("features")}>Features</button>
+                <button type="button" className="transition-colors hover:text-white cursor-pointer" onClick={() => scrollToSection("how-it-works")}>How it works</button>
+                <button type="button" className="transition-colors hover:text-white cursor-pointer" onClick={() => scrollToSection("open-source")}>Open source</button>
             </nav>
 
             <div className="flex shrink-0 items-center gap-2">
