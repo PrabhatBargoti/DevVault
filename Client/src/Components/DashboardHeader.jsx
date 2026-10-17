@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
-import ProfileAvatar from './ProfileAvatar'
+import ProfileAvatar from '../Pages/Homepage/HomeEmpty/ProfileAvatar'
 
 const DashboardHeader = ({ user }) => {
   const navigate = useNavigate()

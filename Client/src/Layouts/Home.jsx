@@ -2,6 +2,7 @@ import React from 'react'
 import SEO from "../Components/SEO";
 import Sidebar from '../Pages/Sidebar';
 import HomeEmpty from '../Pages/Homepage/HomeEmpty/HomeEmpty';
+import HomeFill from '../Pages/Homepage/HomeFill/HomeFill';
 
 const Home = () => {
   return (
@@ -15,6 +16,7 @@ const Home = () => {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <HomeEmpty />
+        <HomeFill />
       </div>
     </div>
   )

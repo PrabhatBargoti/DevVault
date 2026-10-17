@@ -1,4 +1,4 @@
-import DashboardHeader from './DashboardHeader'
+import DashboardHeader from '../../../Components/DashboardHeader'
 import EmptyVaultState from './EmptyVaultState'
 
 const HomeEmpty = ({ user }) => (
