@@ -5,7 +5,7 @@ import SettingFill from "../Pages/Settings/SettingFill";
 
 const Setting = () => {
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
+    <div className="flex min-h-dvh flex-col md:flex-row md:pl-64">
         <SEO 
         title="Settings" 
         description="Manage your DevVault account and application preferences." 

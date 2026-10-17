@@ -5,7 +5,7 @@ import Categoriefill from '../Pages/Categorie/Categoriefill'
 
 const Categorie = () => {
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
+    <div className="flex min-h-dvh flex-col md:flex-row md:pl-64">
         <SEO 
         title="Categories" 
         description="Your DevVault workspace for managing code snippets, tags, categories, and developer knowledge." 

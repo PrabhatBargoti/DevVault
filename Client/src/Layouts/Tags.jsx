@@ -5,7 +5,7 @@ import TagEmpty from '../Pages/Tags/TagEmpty/TagEmpty'
 
 const Tags = () => {
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
+    <div className="flex min-h-dvh flex-col md:flex-row md:pl-64">
         <SEO 
         title="Tags" 
         description="Your DevVault workspace for managing code snippets, tags, categories, and developer knowledge." 

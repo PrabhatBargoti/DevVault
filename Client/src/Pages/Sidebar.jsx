@@ -21,7 +21,7 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`${isMenuOpen ? 'fixed inset-0 z-50 h-dvh w-full justify-between overflow-y-auto' : 'relative w-full'} flex flex-col border-b border-[#232733] bg-[#0B0D12] p-3 font-sans md:relative md:inset-auto md:z-20 md:h-auto md:min-h-dvh md:w-64 md:shrink-0 md:justify-between md:overflow-visible md:border-b-0 md:border-r md:p-4`}
+      className={`${isMenuOpen ? 'fixed inset-0 z-50 h-dvh w-full justify-between overflow-y-auto' : 'sticky top-0 z-30 w-full'} flex self-start flex-col border-b border-[#232733] bg-[#0B0D12] p-3 font-sans md:fixed md:inset-y-0 md:left-0 md:h-dvh md:min-h-0 md:w-64 md:shrink-0 md:justify-between md:overflow-hidden md:border-b-0 md:border-r md:p-4`}
     >
       <div>
         <div className="flex items-center justify-between px-1 py-1 md:mb-4 md:px-2 md:py-2">
