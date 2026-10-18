@@ -185,7 +185,6 @@ The current frontend is intentionally a prototype and should not be treated as p
 For the detailed implementation and engineering notes, see:
 
 - [Client/FRONTEND.md](Client/FRONTEND.md)
-- [frontend.md](frontend.md)
 
 The detailed frontend guide covers architecture, route map, persistence behavior, styling, verification commands, limitations, and future development guidance.
 
