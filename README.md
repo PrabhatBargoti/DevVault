@@ -46,7 +46,6 @@ D:\DevVault
 │   └── server.js            # Express bootstrap entry point
 ├── .env.example             # Supabase environment variable placeholders
 ├── README.md                # Repository overview (this file)
-├── frontend.md              # Shortcut to frontend docs
 └── .gitignore
 ```
 
