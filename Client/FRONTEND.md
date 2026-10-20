@@ -132,7 +132,7 @@ BrowserRouter
         └── App
 ```
 
-`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` wraps all routes in the dark background and declares the route table. `src/shared/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
+`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` wraps all routes in the dark background, declares the route table, shows the offline screen from browser connection events, and catches React render errors with an error boundary. `src/shared/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
 
 The normal data flow is:
 
@@ -155,6 +155,7 @@ Pages own state and callbacks; presentational components receive props. There is
 | `/forgot-password` | `features/auth/pages/ForgotPasswordPage` | Local reset confirmation UI | Public; no email request |
 | `/Home` | `features/dashboard/pages/DashboardPage` | Workspace dashboard | No guard |
 | `/Snippet` | `features/snippets/pages/SnippetsPage` | Snippet management | No guard |
+| `/Snippet/:snippetId` | `features/snippets/pages/SnippetDetailPage` | View a saved snippet; deleted or unknown IDs show an unavailable state | No guard |
 | `/Snippet?create=1` | Same snippets page | Opens create form | No guard |
 | `/Tags` | `features/tags/pages/TagsPage` | Tags placeholder | No guard |
 | `/Categorie` | `features/categories/pages/CategoriesPage` | Categories placeholder | No guard |
@@ -179,7 +180,7 @@ The existing capitalization is intentional and must be preserved. There are no l
 
 ### Snippets
 
-`SnippetsPage` owns URL query state, the snippet array, search query, create/delete callbacks, and persistence. `SnippetForm` collects required title/code plus description, language, category, and tags. `Snippet` derives category/language filter choices and filters records. `SnippetCard` displays data and offers a two-step permanent-delete confirmation. Empty-state components guide first creation.
+`SnippetsPage` owns URL query state, the snippet array, search query, create/delete callbacks, and persistence. `SnippetForm` collects required title/code plus description, language, category, and tags. `Snippet` derives category/language filter choices and filters records. `SnippetCard` links to saved snippet details and offers a two-step permanent-delete confirmation. `SnippetDetailPage` displays a saved snippet or an unavailable error state for missing/deleted IDs. Empty-state components guide first creation.
 
 ### Tags, categories, and settings
 
@@ -214,6 +215,8 @@ New records contain the following shape:
 ## Shared UI and styling
 
 Shared components include `SEO`, `Sidebar`, the sticky `DashboardHeader` (shared snippet search and profile navigation), `ProfileAvatar`, `Logo`, `HomeShortcut`, and the four button variants. All workspace pages use the shared header; submitting its search opens matching results in Snippets. `shared/constants/navItems.jsx` defines workspace navigation. `shared/hooks/useScrollToSection.js` is the shared landing scroll behavior. Keep feature-specific cards and forms in their feature; do not put business logic in generic buttons or layout components.
+
+`OfflinePage` is shown while the browser reports no network connection and returns to the app when connectivity is restored. `ErrorPage` is used for missing snippets and unexpected React render errors; its retry action returns to the appropriate route or reloads the app. Both status screens use responsive, viewport-filling layouts.
 
 `src/index.css` imports Inter and Tailwind, defines `--font-ui`, enables smooth scroll, prevents horizontal overflow, and sets the dark global palette. Components use Tailwind utilities and the existing palette (`#0B0D12`, `#12151C`, `#232733`, `#6E6BF4`). Layouts are mobile-first: the workspace sidebar is collapsible/full-width on small screens and fixed at the `md` breakpoint. Preserve semantic headings, labels, `aria-*` attributes, focus styles, and responsive classes.
 
