@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import ProfileAvatar from './ProfileAvatar'
@@ -6,16 +5,11 @@ import ProfileAvatar from './ProfileAvatar'
 const DashboardHeader = ({ user }) => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [query, setQuery] = useState(searchParams.get('search') || '')
   const search = searchParams.get('search') || ''
-
-  useEffect(() => {
-    setQuery(search)
-  }, [search])
 
   const handleSearch = (event) => {
     event.preventDefault()
-    const nextSearch = query.trim()
+    const nextSearch = event.currentTarget.elements.namedItem('search').value.trim()
     navigate(nextSearch ? `/Snippet?search=${encodeURIComponent(nextSearch)}` : '/Snippet')
   }
 
@@ -30,10 +24,11 @@ const DashboardHeader = ({ user }) => {
         <Search aria-hidden="true" size={16} className="shrink-0" />
         <input
           type="search"
+          name="search"
           aria-label="Search snippets"
           placeholder="Search snippets..."
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          key={search}
+          defaultValue={search}
           className="min-w-0 flex-1 bg-transparent text-sm text-[#E7E9EE] outline-none placeholder:text-[#5A6275]"
         />
         <button type="submit" className="sr-only">Search snippets</button>
