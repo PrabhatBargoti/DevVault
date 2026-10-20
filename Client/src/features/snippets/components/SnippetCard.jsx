@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { LockKeyhole, MoreVertical, Trash2 } from 'lucide-react'
 
 const SnippetCard = ({ snippet, onDelete }) => {
@@ -11,7 +12,14 @@ const SnippetCard = ({ snippet, onDelete }) => {
   return (
     <article className="relative rounded-xl border border-[#252A37] bg-[#12151C] p-4 sm:p-4.5">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="min-w-0 wrap-break-word text-sm font-semibold text-[#E7E9EE] sm:text-[15px]">{snippet.title}</h2>
+        <h2 className="min-w-0 wrap-break-word text-sm font-semibold text-[#E7E9EE] sm:text-[15px]">
+          <Link
+            to={`/Snippet/${encodeURIComponent(snippet.id)}`}
+            className="rounded-sm hover:text-[#9290FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6E6BF4]"
+          >
+            {snippet.title}
+          </Link>
+        </h2>
         <div className="relative shrink-0">
           <button type="button" aria-label={`Options for ${snippet.title}`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} className="flex h-8 w-8 items-center justify-center rounded-md text-[#737C90] hover:bg-[#1C2029] hover:text-[#E7E9EE]">
             <MoreVertical aria-hidden="true" size={17} />
