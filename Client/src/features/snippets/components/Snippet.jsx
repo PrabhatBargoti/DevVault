@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react'
 import SnippetFilters from './SnippetFilters'
 import SnippetCard from './SnippetCard'
 
-const Snippet = ({ snippets, query, onQueryChange, onCreate, onDelete }) => {
+const Snippet = ({ snippets, query, onCreate, onDelete }) => {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [languageFilter, setLanguageFilter] = useState('')
   const categories = [...new Set(snippets.map((snippet) => snippet.category).filter(Boolean))]
@@ -32,8 +32,6 @@ const Snippet = ({ snippets, query, onQueryChange, onCreate, onDelete }) => {
       </section>
 
       <SnippetFilters
-        query={query}
-        onQueryChange={onQueryChange}
         categories={categories}
         languages={languages}
         categoryFilter={categoryFilter}

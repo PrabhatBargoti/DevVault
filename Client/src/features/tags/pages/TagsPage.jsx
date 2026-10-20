@@ -1,5 +1,6 @@
 import SEO from '../../../shared/components/SEO'
 import Sidebar from '../../../shared/components/Sidebar'
+import DashboardHeader from '../../../shared/components/DashboardHeader'
 import TagEmpty from '../components/TagEmpty'
 
 const Tags = () => {
@@ -12,6 +13,7 @@ const Tags = () => {
         noIndex />
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
+            <DashboardHeader />
             <TagEmpty />
         </div>
     </div>

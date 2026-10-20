@@ -213,7 +213,7 @@ New records contain the following shape:
 
 ## Shared UI and styling
 
-Shared components include `SEO`, `Sidebar`, `DashboardHeader`, `Logo`, `HomeShortcut`, `ProfileAvatar`, and the four button variants. `shared/constants/navItems.jsx` defines workspace navigation. `shared/hooks/useScrollToSection.js` is the shared landing scroll behavior. Keep feature-specific cards and forms in their feature; do not put business logic in generic buttons or layout components.
+Shared components include `SEO`, `Sidebar`, the sticky `DashboardHeader` (shared snippet search and profile navigation), `ProfileAvatar`, `Logo`, `HomeShortcut`, and the four button variants. All workspace pages use the shared header; submitting its search opens matching results in Snippets. `shared/constants/navItems.jsx` defines workspace navigation. `shared/hooks/useScrollToSection.js` is the shared landing scroll behavior. Keep feature-specific cards and forms in their feature; do not put business logic in generic buttons or layout components.
 
 `src/index.css` imports Inter and Tailwind, defines `--font-ui`, enables smooth scroll, prevents horizontal overflow, and sets the dark global palette. Components use Tailwind utilities and the existing palette (`#0B0D12`, `#12151C`, `#232733`, `#6E6BF4`). Layouts are mobile-first: the workspace sidebar is collapsible/full-width on small screens and fixed at the `md` breakpoint. Preserve semantic headings, labels, `aria-*` attributes, focus styles, and responsive classes.
 

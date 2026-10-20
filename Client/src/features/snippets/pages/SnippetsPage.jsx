@@ -11,7 +11,7 @@ import { getSavedSnippets, markSnippetCreated, saveSnippets } from '../lib/snipp
 const Snippets = ({ user }) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [snippets, setSnippets] = useState(getSavedSnippets)
-  const [query, setQuery] = useState('')
+  const searchQuery = searchParams.get('search') || ''
   const [isCreateOpen, setIsCreateOpen] = useState(() => searchParams.get('create') === '1')
 
   const closeCreate = () => {
@@ -66,8 +66,7 @@ const Snippets = ({ user }) => {
         ) : (
           <Snippet
             snippets={snippets}
-            query={query}
-            onQueryChange={setQuery}
+            query={searchQuery}
             onCreate={openCreate}
             onDelete={deleteSnippet}
           />

@@ -22,7 +22,7 @@ const HomeRecentSnippets = ({ snippets, onDelete }) => {
           {recentSnippets.map((snippet) => <SnippetCard key={snippet.id} snippet={snippet} onDelete={onDelete} />)}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-[#303545] px-5 py-8 text-center">
+        <div className="rounded-xl border border-dashed border-[#303545] px-5 py-8 text-center cursor-pointer">
           <p className="text-sm font-medium text-[#C7CBD5]">No snippets saved right now</p>
           <p className="mt-1 text-sm text-[#737C90]">Your vault is ready for the next one.</p>
           <button type="button" onClick={() => navigate('/Snippet')} className="mt-4 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#5E5AE6] bg-[#6E6BF4] px-3.5 text-sm font-semibold text-white hover:bg-[#8280F7]">

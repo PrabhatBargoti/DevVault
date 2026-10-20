@@ -1,5 +1,6 @@
 import SEO from '../../../shared/components/SEO'
 import Sidebar from '../../../shared/components/Sidebar'
+import DashboardHeader from '../../../shared/components/DashboardHeader'
 import Categoriefill from '../components/Categoriefill'
 
 const Categorie = () => {
@@ -12,6 +13,7 @@ const Categorie = () => {
         noIndex />
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
+            <DashboardHeader />
             <Categoriefill />
         </div>
     </div>

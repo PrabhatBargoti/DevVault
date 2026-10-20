@@ -1,21 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
-import ProfileAvatar from '../../features/dashboard/components/ProfileAvatar'
+import ProfileAvatar from './ProfileAvatar'
 
 const DashboardHeader = ({ user }) => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('search') || '')
+  const search = searchParams.get('search') || ''
+
+  useEffect(() => {
+    setQuery(search)
+  }, [search])
 
   const handleSearch = (event) => {
     event.preventDefault()
-    const search = query.trim()
-    navigate(search ? `/Snippet?search=${encodeURIComponent(search)}` : '/Snippet')
+    const nextSearch = query.trim()
+    navigate(nextSearch ? `/Snippet?search=${encodeURIComponent(nextSearch)}` : '/Snippet')
   }
 
   return (
-    <header className="flex h-14 items-center justify-between gap-3 border-b border-[#232733] px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[#232733] bg-[#0B0D12]/95 px-4 backdrop-blur sm:px-6 lg:px-8">
       <form
         role="search"
         aria-label="Snippet search"
@@ -34,9 +39,14 @@ const DashboardHeader = ({ user }) => {
         <button type="submit" className="sr-only">Search snippets</button>
       </form>
 
-      <div className="flex shrink-0 items-center gap-3 cursor-pointer" onClick={() => navigate('/Setting')}>
+      <button
+        type="button"
+        aria-label="Open settings"
+        onClick={() => navigate('/Setting')}
+        className="flex shrink-0 cursor-pointer items-center gap-3 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6E6BF4]"
+      >
         <ProfileAvatar user={user} />
-      </div>
+      </button>
     </header>
   )
 }

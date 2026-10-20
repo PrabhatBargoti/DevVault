@@ -16,7 +16,7 @@ const HomeFill = ({ snippets, onDelete }) => {
             <h1 className="text-2xl font-bold tracking-tight text-[#E7E9EE] sm:text-3xl">Your vault</h1>
             <p className="mt-1.5 text-sm text-[#8B93A7] sm:text-[15px]">A clear view of the things you’ve saved.</p>
           </div>
-          <button type="button" onClick={() => navigate('/Snippet?create=1')} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#5E5AE6] bg-[#6E6BF4] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] sm:px-4">
+          <button type="button" onClick={() => navigate('/Snippet?create=1')} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#5E5AE6] bg-[#6E6BF4] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] sm:px-4 cursor-pointer">
             <Plus aria-hidden="true" size={17} />
             <span>New snippet</span>
           </button>

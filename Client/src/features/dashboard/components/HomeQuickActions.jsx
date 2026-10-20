@@ -14,7 +14,7 @@ const HomeQuickActions = () => {
     <nav aria-label="Quick actions" className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 2xl:grid-cols-4">
       {actions.map(({ label, detail, path, icon: Icon }) => (
         <button key={label} type="button" onClick={() => navigate(path)} className="group flex min-w-0 items-center gap-3 rounded-xl border border-[#252A37] bg-[#12151C] p-3 text-left transition-colors hover:border-[#45416F] hover:bg-[#161923]">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#22243B] text-[#9290FF]">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#22243B] text-[#9290FF] cursor-pointer">
             <Icon aria-hidden="true" size={17} />
           </span>
           <span className="min-w-0 flex-1">
