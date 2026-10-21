@@ -132,7 +132,7 @@ BrowserRouter
         └── App
 ```
 
-`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` wraps all routes in the dark background, declares the route table, shows the offline screen from browser connection events, and catches React render errors with an error boundary. `src/shared/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
+`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` lazy-loads route pages and wraps them in a shared Suspense boundary; `RouteLoadingSkeleton` renders a responsive page-shaped fallback while a route chunk is loading. `index.html` also includes a small critical-CSS placeholder so the initial document is not blank while the JavaScript bundle downloads. The app shows the offline screen from browser connection events and catches React render errors with an error boundary. `src/shared/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
 
 The normal data flow is:
 
@@ -163,7 +163,7 @@ Pages own state and callbacks; presentational components receive props. There is
 | `/Setting` | `features/settings/pages/SettingsPage` | Edit local profile details and manage browser-stored snippets; appearance settings are not included | No guard |
 | `*` | `features/not-found/NotFoundPage` | 404 fallback | Public |
 
-The existing capitalization is intentional and must be preserved. There are no lazy routes, redirects, nested route layouts, or protected-route wrappers. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
+The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback; there are no redirects, nested route layouts, or protected-route wrappers. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
 
 ## Features
 

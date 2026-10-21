@@ -22,12 +22,64 @@
     content="Save, organize, and find your code snippets and developer knowledge in one powerful vault." />
   <meta name="twitter:image" content="/og-image.png" />
   <meta name="theme-color" content="#0B0B0F" />
+  <style>
+    .initial-loading {
+      min-height: 100vh;
+      padding: 24px;
+      background: #0b0d12;
+      color: #e7e9ee;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .initial-loading__bar,
+    .initial-loading__block {
+      background: #1b202b;
+      animation: initial-loading-pulse 1.5s ease-in-out infinite;
+    }
+
+    .initial-loading__bar {
+      width: min(100%, 320px);
+      height: 14px;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+
+    .initial-loading__block {
+      width: min(100%, 720px);
+      height: 120px;
+      margin: 56px auto 0;
+      border-radius: 14px;
+    }
+
+    .initial-loading__block--short {
+      width: min(100%, 420px);
+      height: 28px;
+      margin-top: 48px;
+    }
+
+    @keyframes initial-loading-pulse {
+      50% { opacity: 0.55; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .initial-loading__bar,
+      .initial-loading__block {
+        animation: none;
+      }
+    }
+  </style>
 
   <title>DevVault — Your Developer Knowledge Vault</title>
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <main class="initial-loading" role="status" aria-label="Loading DevVault">
+      <div class="initial-loading__bar" aria-hidden="true"></div>
+      <div class="initial-loading__block initial-loading__block--short" aria-hidden="true"></div>
+      <div class="initial-loading__block" aria-hidden="true"></div>
+    </main>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

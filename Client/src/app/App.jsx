@@ -1,18 +1,20 @@
-import { Component, useEffect, useState } from 'react'
+import { Component, lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import SignUpPage from '../features/auth/pages/SignUpPage'
-import LoginPage from '../features/auth/pages/LoginPage'
-import TagsPage from '../features/tags/pages/TagsPage'
-import CategoriesPage from '../features/categories/pages/CategoriesPage'
-import NotFoundPage from '../features/not-found/NotFoundPage'
-import SettingsPage from '../features/settings/pages/SettingsPage'
-import LandingPage from '../features/landing/pages/LandingPage'
-import ForgotPasswordPage from '../features/auth/pages/ForgotPasswordPage'
-import DashboardPage from '../features/dashboard/pages/DashboardPage'
-import SnippetsPage from '../features/snippets/pages/SnippetsPage'
-import SnippetDetailPage from '../features/snippets/pages/SnippetDetailPage'
+import RouteLoadingSkeleton from '../shared/components/RouteLoadingSkeleton'
 import OfflinePage from '../shared/components/OfflinePage'
 import ErrorPage from '../shared/components/ErrorPage'
+
+const SignUpPage = lazy(() => import('../features/auth/pages/SignUpPage'))
+const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
+const TagsPage = lazy(() => import('../features/tags/pages/TagsPage'))
+const CategoriesPage = lazy(() => import('../features/categories/pages/CategoriesPage'))
+const NotFoundPage = lazy(() => import('../features/not-found/NotFoundPage'))
+const SettingsPage = lazy(() => import('../features/settings/pages/SettingsPage'))
+const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'))
+const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPasswordPage'))
+const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'))
+const SnippetsPage = lazy(() => import('../features/snippets/pages/SnippetsPage'))
+const SnippetDetailPage = lazy(() => import('../features/snippets/pages/SnippetDetailPage'))
 
 class AppErrorBoundary extends Component {
   state = { hasError: false }
@@ -54,19 +56,21 @@ const App = () => {
     <AppErrorBoundary>
       {isOnline ? (
         <div className="bg-[#0B0D12] selection:bg-[#1C2029]">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/Signup" element={<SignUpPage />} />
-            <Route path="/Login" element={<LoginPage />} />
-            <Route path="/Home" element={<DashboardPage />} />
-            <Route path="/Snippet" element={<SnippetsPage />} />
-            <Route path="/Snippet/:snippetId" element={<SnippetDetailPage />} />
-            <Route path="/Tags" element={<TagsPage />} />
-            <Route path="/Categorie" element={<CategoriesPage />} />
-            <Route path="/Setting" element={<SettingsPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <Suspense fallback={<RouteLoadingSkeleton />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/Signup" element={<SignUpPage />} />
+              <Route path="/Login" element={<LoginPage />} />
+              <Route path="/Home" element={<DashboardPage />} />
+              <Route path="/Snippet" element={<SnippetsPage />} />
+              <Route path="/Snippet/:snippetId" element={<SnippetDetailPage />} />
+              <Route path="/Tags" element={<TagsPage />} />
+              <Route path="/Categorie" element={<CategoriesPage />} />
+              <Route path="/Setting" element={<SettingsPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </div>
       ) : (
         <OfflinePage onRetry={() => setIsOnline(window.navigator.onLine)} />
