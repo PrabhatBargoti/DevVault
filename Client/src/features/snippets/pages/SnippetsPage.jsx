@@ -15,9 +15,11 @@ const Snippets = ({ user }) => {
   const categoryFilter = searchParams.get('category') || ''
   const tagFilter = searchParams.get('tag') || ''
   const [isCreateOpen, setIsCreateOpen] = useState(() => searchParams.get('create') === '1')
+  const [editingSnippet, setEditingSnippet] = useState(null)
 
   const closeCreate = () => {
     setIsCreateOpen(false)
+    setEditingSnippet(null)
     if (searchParams.has('create')) {
       const nextSearchParams = new URLSearchParams(searchParams)
       nextSearchParams.delete('create')
@@ -26,6 +28,7 @@ const Snippets = ({ user }) => {
   }
 
   const openCreate = () => {
+    setEditingSnippet(null)
     setIsCreateOpen(true)
     setSearchParams((current) => {
       const nextSearchParams = new URLSearchParams(current)
@@ -47,6 +50,18 @@ const Snippets = ({ user }) => {
     closeCreate()
   }
 
+  const editSnippet = (snippet) => {
+    setEditingSnippet(snippet)
+    setIsCreateOpen(false)
+  }
+
+  const updateSnippet = (updates) => {
+    setSnippets((currentSnippets) => currentSnippets.map((snippet) => (
+      snippet.id === editingSnippet.id ? { ...snippet, ...updates, updatedAt: new Date().toISOString() } : snippet
+    )))
+    closeCreate()
+  }
+
   const deleteSnippet = (id) => {
     setSnippets((currentSnippets) => currentSnippets.filter((snippet) => snippet.id !== id))
   }
@@ -61,8 +76,13 @@ const Snippets = ({ user }) => {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader user={user} />
-        {isCreateOpen ? (
-          <SnippetForm onClose={closeCreate} onSave={createSnippet} />
+        {isCreateOpen || editingSnippet ? (
+          <SnippetForm
+            key={editingSnippet?.id || 'new'}
+            initialSnippet={editingSnippet || undefined}
+            onClose={closeCreate}
+            onSave={editingSnippet ? updateSnippet : createSnippet}
+          />
         ) : snippets.length === 0 ? (
           <SnippetEmpty onCreate={openCreate} />
         ) : (
@@ -80,6 +100,7 @@ const Snippets = ({ user }) => {
               setSearchParams(nextSearchParams)
             }}
             onCreate={openCreate}
+            onEdit={editSnippet}
             onDelete={deleteSnippet}
           />
         )}

@@ -3,7 +3,7 @@ import { Plus, Search } from 'lucide-react'
 import SnippetFilters from './SnippetFilters'
 import SnippetCard from './SnippetCard'
 
-const Snippet = ({ snippets, query, initialCategory, tagFilter, onClearSearch, onCreate, onDelete }) => {
+const Snippet = ({ snippets, query, initialCategory, tagFilter, onClearSearch, onCreate, onEdit, onDelete }) => {
   const [categoryFilter, setCategoryFilter] = useState(initialCategory)
   const [languageFilter, setLanguageFilter] = useState('')
   const categories = [...new Set(snippets.map((snippet) => snippet.category).filter(Boolean))]
@@ -50,7 +50,7 @@ const Snippet = ({ snippets, query, initialCategory, tagFilter, onClearSearch, o
       {filteredSnippets.length > 0 ? (
         <section aria-label="Saved snippets" className="mt-4 grid gap-2.5">
           {filteredSnippets.map((snippet) => (
-            <SnippetCard key={snippet.id} snippet={snippet} onDelete={onDelete} />
+            <SnippetCard key={snippet.id} snippet={snippet} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </section>
       ) : (

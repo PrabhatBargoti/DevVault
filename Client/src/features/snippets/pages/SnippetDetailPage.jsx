@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import SEO from '../../../shared/components/SEO'
 import Sidebar from '../../../shared/components/Sidebar'
 import DashboardHeader from '../../../shared/components/DashboardHeader'
@@ -10,9 +10,19 @@ import { getSavedSnippets, saveSnippets } from '../lib/snippetStorage'
 const SnippetDetailPage = () => {
   const { snippetId } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [snippets, setSnippets] = useState(getSavedSnippets)
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(() => searchParams.get('edit') === '1')
   const snippet = snippets.find((savedSnippet) => String(savedSnippet.id) === snippetId)
+
+  const closeEditing = () => {
+    setIsEditing(false)
+    if (searchParams.has('edit')) {
+      const nextSearchParams = new URLSearchParams(searchParams)
+      nextSearchParams.delete('edit')
+      setSearchParams(nextSearchParams, { replace: true })
+    }
+  }
 
   const updateSnippet = (updates) => {
     const updatedSnippets = snippets.map((savedSnippet) => (
@@ -20,7 +30,7 @@ const SnippetDetailPage = () => {
     ))
     saveSnippets(updatedSnippets)
     setSnippets(updatedSnippets)
-    setIsEditing(false)
+    closeEditing()
   }
 
   if (!snippet) {
@@ -56,7 +66,7 @@ const SnippetDetailPage = () => {
         {isEditing ? (
           <SnippetForm
             initialSnippet={snippet}
-            onClose={() => setIsEditing(false)}
+            onClose={closeEditing}
             onSave={updateSnippet}
           />
         ) : (
