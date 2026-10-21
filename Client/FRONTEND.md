@@ -24,9 +24,9 @@ This guide describes the implemented React application in `Client/`. It is based
 
 ## Overview
 
-DevVault is a dark-themed developer knowledge vault. The frontend presents a marketing landing page and a workspace for saving, revisiting, filtering, and deleting code snippets. It also contains route-level UI for authentication, tags, categories, and settings.
+DevVault is a dark-themed developer knowledge vault. The frontend presents a marketing landing page and a responsive workspace for saving, editing, revisiting, searching, filtering, and deleting code snippets, and organizing them by tag and category. It also contains route-level UI for authentication and settings.
 
-The client is a standalone Vite single-page application. It currently owns browser navigation, presentation, SEO metadata, local React state, and localStorage persistence. It does not currently send API requests to the `Server/` package. Login, signup, social buttons, and password recovery are UI flows only; tags, categories, and settings are placeholders.
+The client is a standalone Vite single-page application. It currently owns browser navigation, presentation, SEO metadata, local React state, and localStorage persistence. It does not currently send API requests to the `Server/` package. Login, signup, social buttons, and password recovery are UI flows only; settings remain a placeholder.
 
 ## Stack
 
@@ -155,10 +155,11 @@ Pages own state and callbacks; presentational components receive props. There is
 | `/forgot-password` | `features/auth/pages/ForgotPasswordPage` | Local reset confirmation UI | Public; no email request |
 | `/Home` | `features/dashboard/pages/DashboardPage` | Workspace dashboard | No guard |
 | `/Snippet` | `features/snippets/pages/SnippetsPage` | Snippet management | No guard |
-| `/Snippet/:snippetId` | `features/snippets/pages/SnippetDetailPage` | View a saved snippet; deleted or unknown IDs show an unavailable state | No guard |
+| `/Snippet/:snippetId` | `features/snippets/pages/SnippetDetailPage` | View or edit a saved snippet; deleted or unknown IDs show an unavailable state | No guard |
 | `/Snippet?create=1` | Same snippets page | Opens create form | No guard |
-| `/Tags` | `features/tags/pages/TagsPage` | Tags placeholder | No guard |
-| `/Categorie` | `features/categories/pages/CategoriesPage` | Categories placeholder | No guard |
+| `/Snippet?search=<term>` | Same snippets page | Shows matching search results; supports category and tag query filters | No guard |
+| `/Tags` | `features/tags/pages/TagsPage` | Search tags, view snippet counts, and open snippets for a tag; shows an empty state when no tags exist | No guard |
+| `/Categorie` | `features/categories/pages/CategoriesPage` | Browse category cards and snippet counts; open snippets in a category | No guard |
 | `/Setting` | `features/settings/pages/SettingsPage` | Settings placeholder | No guard |
 | `*` | `features/not-found/NotFoundPage` | 404 fallback | Public |
 
@@ -180,11 +181,11 @@ The existing capitalization is intentional and must be preserved. There are no l
 
 ### Snippets
 
-`SnippetsPage` owns URL query state, the snippet array, search query, create/delete callbacks, and persistence. `SnippetForm` collects required title/code plus description, language, category, and tags. `Snippet` derives category/language filter choices and filters records. `SnippetCard` links to saved snippet details and offers a two-step permanent-delete confirmation. `SnippetDetailPage` displays a saved snippet or an unavailable error state for missing/deleted IDs. Empty-state components guide first creation.
+`SnippetsPage` owns URL query state, the snippet array, search query, create/edit/delete callbacks, and persistence. `SnippetForm` collects required title/code plus description, language, category, and tags; in edit mode it is prefilled with the saved snippet. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays a saved snippet and provides an edit action, or shows an unavailable error state for missing/deleted IDs. Empty-state components guide first creation.
 
-### Tags, categories, and settings
+### Tags and categories
 
-These route boundaries are established but currently render placeholder content. Future work should stay inside each feature and add persistence only after an explicit backend contract exists.
+The tags page derives tags and per-tag snippet counts from saved snippet records, supports searching the tag list, and links each tag to matching snippet results. It shows an empty state when no snippets have tags and a separate no-match state for an empty search. The categories page derives category cards and counts from saved snippets, adapts the grid to the viewport, and links each category to its filtered snippets. Both features use the existing snippet localStorage; they do not maintain separate tag or category stores. Settings remains a placeholder.
 
 ## Persistence and data flow
 
@@ -206,11 +207,12 @@ New records contain the following shape:
   language: string,
   category: string,
   tags: string[],
-  createdAt: string
+  createdAt: string,
+  updatedAt?: string
 }
 ```
 
-`SnippetsPage` adds `id` and ISO `createdAt`, prepends new records, and writes state through an effect. Search/filter state remains in memory. The dashboard reads the same store on mount. Malformed JSON and storage failures are caught and fall back safely. Clearing browser site data clears the vault. This storage is not encrypted, account-scoped, synchronized, or suitable for secrets.
+`SnippetsPage` adds `id` and ISO `createdAt`, prepends new records, and writes state through an effect. Editing updates the matching record, preserves its ID and creation date, sets `updatedAt`, and saves the revised array. Search text is represented in the URL; tag/category filters use URL parameters, while language filtering is local to the snippets view. Tags and categories are derived from the same saved records. The dashboard reads the same store on mount. Malformed JSON and storage failures are caught and fall back safely. Clearing browser site data clears the vault. This storage is not encrypted, account-scoped, synchronized, or suitable for secrets.
 
 ## Shared UI and styling
 
@@ -292,8 +294,8 @@ There is no verified production auth, API endpoint, server deployment, database 
 
 ## Limitations and contribution
 
-Implemented: landing page, responsive workspace shell, client routes, page-level SEO, local snippet create/filter/display/delete flows, reusable shared controls, and local persistence.
+Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, local snippet create/edit/search/filter/display/delete flows, tag and category browsing, reusable shared controls, and local persistence.
 
-Partial or unimplemented: authentication, social providers, password reset delivery, tags, categories, settings, backend API routes, Supabase persistence, automated tests, type checking, encryption, account scoping, and cross-device synchronization.
+Partial or unimplemented: authentication, social providers, password reset delivery, tag/category editing independent of snippets, settings, backend API routes, Supabase persistence, automated tests, type checking, encryption, account scoping, and cross-device synchronization.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.
