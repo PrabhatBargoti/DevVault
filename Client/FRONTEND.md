@@ -26,7 +26,7 @@ This guide describes the implemented React application in `Client/`. It is based
 
 DevVault is a dark-themed developer knowledge vault. The frontend presents a marketing landing page and a responsive workspace for saving, editing, revisiting, searching, filtering, and deleting code snippets, and organizing them by tag and category. It also contains route-level UI for authentication and settings.
 
-The client is a standalone Vite single-page application. It currently owns browser navigation, presentation, SEO metadata, local React state, and localStorage persistence. It does not currently send API requests to the `Server/` package. Login, signup, social buttons, and password recovery are UI flows only; settings remain a placeholder.
+The client is a standalone Vite single-page application. It currently owns browser navigation, presentation, SEO metadata, local React state, and localStorage persistence. It does not currently send API requests to the `Server/` package. Login, signup, social buttons, and password recovery are UI flows only; settings profile data and vault controls are local to the browser.
 
 ## Stack
 
@@ -160,7 +160,7 @@ Pages own state and callbacks; presentational components receive props. There is
 | `/Snippet?search=<term>` | Same snippets page | Shows matching search results; supports category and tag query filters | No guard |
 | `/Tags` | `features/tags/pages/TagsPage` | Search tags, view snippet counts, and open snippets for a tag; shows an empty state when no tags exist | No guard |
 | `/Categorie` | `features/categories/pages/CategoriesPage` | Browse category cards and snippet counts; open snippets in a category | No guard |
-| `/Setting` | `features/settings/pages/SettingsPage` | Settings placeholder | No guard |
+| `/Setting` | `features/settings/pages/SettingsPage` | Edit local profile details and manage browser-stored snippets; appearance settings are not included | No guard |
 | `*` | `features/not-found/NotFoundPage` | 404 fallback | Public |
 
 The existing capitalization is intentional and must be preserved. There are no lazy routes, redirects, nested route layouts, or protected-route wrappers. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
@@ -185,7 +185,11 @@ The existing capitalization is intentional and must be preserved. There are no l
 
 ### Tags and categories
 
-The tags page derives tags and per-tag snippet counts from saved snippet records, supports searching the tag list, and links each tag to matching snippet results. It shows an empty state when no snippets have tags and a separate no-match state for an empty search. The categories page derives category cards and counts from saved snippets, adapts the grid to the viewport, and links each category to its filtered snippets. Both features use the existing snippet localStorage; they do not maintain separate tag or category stores. Settings remains a placeholder.
+The tags page derives tags and per-tag snippet counts from saved snippet records, supports searching the tag list, and links each tag to matching snippet results. It shows an empty state when no snippets have tags and a separate no-match state for an empty search. The categories page derives category cards and counts from saved snippets, adapts the grid to the viewport, and links each category to its filtered snippets. Both features use the existing snippet localStorage; they do not maintain separate tag or category stores.
+
+### Settings
+
+The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. Account explains that authentication and password/session management are not connected. Its Clear local vault action removes saved snippets and the dashboard's created marker after an accessible confirmation; it leaves profile data intact. These controls do not create or delete a server account.
 
 ## Persistence and data flow
 
@@ -294,8 +298,8 @@ There is no verified production auth, API endpoint, server deployment, database 
 
 ## Limitations and contribution
 
-Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, local snippet create/edit/search/filter/display/delete flows, tag and category browsing, reusable shared controls, and local persistence.
+Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, local snippet create/edit/search/filter/display/delete flows, tag and category browsing, local profile settings and vault controls, reusable shared controls, and local persistence.
 
-Partial or unimplemented: authentication, social providers, password reset delivery, tag/category editing independent of snippets, settings, backend API routes, Supabase persistence, automated tests, type checking, encryption, account scoping, and cross-device synchronization.
+Partial or unimplemented: authentication, social providers, password reset delivery, password/session management, server account deletion, tag/category editing independent of snippets, appearance settings, backend API routes, Supabase persistence, automated tests, type checking, encryption, account scoping, and cross-device synchronization.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.
