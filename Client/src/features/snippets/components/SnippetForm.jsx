@@ -11,9 +11,15 @@ const initialForm = {
 
 const fieldClassName = 'mt-1.5 w-full rounded-lg border border-[#2B3040] bg-[#12151C] px-3 py-2.5 text-sm text-[#E7E9EE] outline-none transition-colors placeholder:text-[#5A6275] focus:border-[#6E6BF4]'
 
-const SnippetForm = ({ onClose, onSave }) => {
-    const [form, setForm] = useState(initialForm)
-    const [tags, setTags] = useState([])
+const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
+    const [form, setForm] = useState(() => initialSnippet ? {
+        title: initialSnippet.title || '',
+        description: initialSnippet.description || '',
+        code: initialSnippet.code || '',
+        category: initialSnippet.category || '',
+        language: initialSnippet.language || '',
+    } : initialForm)
+    const [tags, setTags] = useState(() => initialSnippet?.tags || [])
     const [tagInput, setTagInput] = useState('')
     const formRef = useRef(null)
 
@@ -45,8 +51,8 @@ const SnippetForm = ({ onClose, onSave }) => {
                     Back to snippets
                 </button>
                 <header className="mt-5 mb-5">
-                    <h1 className="text-2xl font-bold tracking-tight text-[#E7E9EE] sm:text-[28px]">Create new snippet</h1>
-                    <p className="mt-2 text-sm text-[#8B93A7] sm:text-[15px]">Save something you'll want again later.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-[#E7E9EE] sm:text-[28px]">{initialSnippet ? 'Edit snippet' : 'Create new snippet'}</h1>
+                    <p className="mt-2 text-sm text-[#8B93A7] sm:text-[15px]">{initialSnippet ? 'Keep this snippet up to date.' : "Save something you'll want again later."}</p>
                 </header>
 
                 <form
@@ -137,7 +143,7 @@ const SnippetForm = ({ onClose, onSave }) => {
                         <button type="button" onClick={onClose} className="min-h-10 rounded-lg border border-[#2B3040] px-4 text-sm font-semibold text-[#C7CBD5] transition-colors hover:bg-[#1C2029]">Cancel</button>
                         <button type="submit" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#5E5AE6] bg-[#6E6BF4] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7]">
                             <Save aria-hidden="true" size={16} />
-                            Save snippet
+                            {initialSnippet ? 'Save changes' : 'Save snippet'}
                         </button>
                     </div>
                 </form>

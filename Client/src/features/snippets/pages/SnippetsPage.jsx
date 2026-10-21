@@ -12,6 +12,8 @@ const Snippets = ({ user }) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [snippets, setSnippets] = useState(getSavedSnippets)
   const searchQuery = searchParams.get('search') || ''
+  const categoryFilter = searchParams.get('category') || ''
+  const tagFilter = searchParams.get('tag') || ''
   const [isCreateOpen, setIsCreateOpen] = useState(() => searchParams.get('create') === '1')
 
   const closeCreate = () => {
@@ -65,8 +67,18 @@ const Snippets = ({ user }) => {
           <SnippetEmpty onCreate={openCreate} />
         ) : (
           <Snippet
+            key={`${categoryFilter}:${tagFilter}`}
             snippets={snippets}
             query={searchQuery}
+            initialCategory={categoryFilter}
+            tagFilter={tagFilter}
+            onClearSearch={() => {
+              const nextSearchParams = new URLSearchParams(searchParams)
+              nextSearchParams.delete('search')
+              nextSearchParams.delete('category')
+              nextSearchParams.delete('tag')
+              setSearchParams(nextSearchParams)
+            }}
             onCreate={openCreate}
             onDelete={deleteSnippet}
           />
