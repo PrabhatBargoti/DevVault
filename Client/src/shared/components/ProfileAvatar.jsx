@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
+import { getSavedProfile, PROFILE_STORAGE_KEY, PROFILE_UPDATED_EVENT } from '../lib/profileStorage'
 
-const getAvatarDetails = (user) => {
+const getAvatarDetails = (user, savedProfile) => {
   const metadata = user?.user_metadata || user?.userMetadata || {}
   const identities = Array.isArray(user?.identities) ? user.identities : []
   const name =
+    savedProfile.name ||
     user?.name ||
     user?.fullName ||
     metadata.full_name ||
     metadata.name ||
     metadata.preferred_username ||
     user?.email ||
+    savedProfile.email ||
     ''
   const ownProfileImage =
     user?.profileImageUrl ||
@@ -29,12 +32,13 @@ const getAvatarDetails = (user) => {
 
   return {
     name,
-    imageUrl: ownProfileImage || providerImage || '',
+    imageUrl: savedProfile.avatar || ownProfileImage || providerImage || '',
   }
 }
 
 const ProfileAvatar = ({ user }) => {
-  const { name, imageUrl } = getAvatarDetails(user)
+  const [savedProfile, setSavedProfile] = useState(getSavedProfile)
+  const { name, imageUrl } = getAvatarDetails(user, savedProfile)
   const [imageFailed, setImageFailed] = useState(false)
   const initials = name
     ? name
@@ -49,6 +53,20 @@ const ProfileAvatar = ({ user }) => {
   useEffect(() => {
     setImageFailed(false)
   }, [imageUrl])
+
+  useEffect(() => {
+    const updateProfile = () => setSavedProfile(getSavedProfile())
+    const updateOnStorageChange = (event) => {
+      if (event.key === PROFILE_STORAGE_KEY || event.key === null) updateProfile()
+    }
+
+    window.addEventListener(PROFILE_UPDATED_EVENT, updateProfile)
+    window.addEventListener('storage', updateOnStorageChange)
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, updateProfile)
+      window.removeEventListener('storage', updateOnStorageChange)
+    }
+  }, [])
 
   return (
     <div

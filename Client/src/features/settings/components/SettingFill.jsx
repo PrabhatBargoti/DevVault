@@ -1,29 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, ImagePlus, LockKeyhole, ShieldCheck, Trash2, UserRound } from 'lucide-react'
+import { getSavedProfile, saveProfile as persistProfile } from '../../../shared/lib/profileStorage'
 
-const PROFILE_STORAGE_KEY = 'devvault-profile'
 const AVATAR_SIZE_LIMIT = 1024 * 1024
 const inputClassName = 'mt-1.5 min-h-11 w-full rounded-lg border border-[#2B3040] bg-[#12151C] px-3.5 text-sm text-[#E7E9EE] outline-none transition-colors placeholder:text-[#5A6275] focus:border-[#6E6BF4] focus:ring-2 focus:ring-[#6E6BF4]/20'
-
-const readProfile = () => {
-  try {
-    const profile = JSON.parse(window.localStorage.getItem(PROFILE_STORAGE_KEY) || '{}')
-    return {
-      name: typeof profile.name === 'string' ? profile.name : '',
-      email: typeof profile.email === 'string' ? profile.email : '',
-      avatar: typeof profile.avatar === 'string' ? profile.avatar : '',
-    }
-  } catch {
-    return { name: '', email: '', avatar: '' }
-  }
-}
 
 const getInitials = (name) => name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'DV'
 
 const SettingFill = () => {
   const [activeTab, setActiveTab] = useState('profile')
-  const [profile, setProfile] = useState(readProfile)
+  const [profile, setProfile] = useState(getSavedProfile)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [avatarError, setAvatarError] = useState('')
@@ -80,7 +67,7 @@ const SettingFill = () => {
     event.preventDefault()
     setError('')
     try {
-      window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+      persistProfile(profile)
       setStatus('Your profile has been saved on this device.')
     } catch {
       setError('Could not save your profile. Check your browser storage and try again.')

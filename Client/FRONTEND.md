@@ -189,7 +189,7 @@ The tags page derives tags and per-tag snippet counts from saved snippet records
 
 ### Settings
 
-The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. Account explains that authentication and password/session management are not connected. Its Clear local vault action removes saved snippets and the dashboard's created marker after an accessible confirmation; it leaves profile data intact. These controls do not create or delete a server account.
+The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs, so the workspace header uses the saved name initials and uploaded image. Account explains that authentication and password/session management are not connected. Its Clear local vault action removes saved snippets and the dashboard's created marker after an accessible confirmation; it leaves profile data intact. These controls do not create or delete a server account.
 
 ## Persistence and data flow
 
