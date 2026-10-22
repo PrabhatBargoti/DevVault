@@ -80,6 +80,7 @@ const Snippets = ({ user }) => {
           <SnippetForm
             key={editingSnippet?.id || 'new'}
             initialSnippet={editingSnippet || undefined}
+            existingSnippets={snippets}
             onClose={closeCreate}
             onSave={editingSnippet ? updateSnippet : createSnippet}
           />

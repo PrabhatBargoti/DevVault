@@ -66,6 +66,7 @@ const SnippetDetailPage = () => {
         {isEditing ? (
           <SnippetForm
             initialSnippet={snippet}
+            existingSnippets={snippets}
             onClose={closeEditing}
             onSave={updateSnippet}
           />

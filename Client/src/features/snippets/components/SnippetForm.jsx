@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
 import { ChevronLeft, Save, X } from 'lucide-react'
 
+const standardLanguages = ['JavaScript', 'TypeScript', 'Python', 'HTML', 'CSS', 'SQL', 'Bash', 'JSON', 'Other']
+const customLanguageOption = '__custom__'
+
 const initialForm = {
     title: '',
     description: '',
@@ -11,7 +14,7 @@ const initialForm = {
 
 const fieldClassName = 'mt-1.5 w-full rounded-lg border border-[#2B3040] bg-[#12151C] px-3 py-2.5 text-sm text-[#E7E9EE] outline-none transition-colors placeholder:text-[#5A6275] focus:border-[#6E6BF4]'
 
-const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
+const SnippetForm = ({ onClose, onSave, initialSnippet, existingSnippets = [] }) => {
     const [form, setForm] = useState(() => initialSnippet ? {
         title: initialSnippet.title || '',
         description: initialSnippet.description || '',
@@ -19,12 +22,30 @@ const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
         category: initialSnippet.category || '',
         language: initialSnippet.language || '',
     } : initialForm)
+    const [isCustomLanguage, setIsCustomLanguage] = useState(false)
+    const [customLanguage, setCustomLanguage] = useState('')
+    const [titleError, setTitleError] = useState('')
+    const [languageError, setLanguageError] = useState('')
     const [tags, setTags] = useState(() => initialSnippet?.tags || [])
     const [tagInput, setTagInput] = useState('')
     const formRef = useRef(null)
 
     const updateField = (event) => {
         setForm((currentForm) => ({ ...currentForm, [event.target.name]: event.target.value }))
+        if (event.target.name === 'title') setTitleError('')
+    }
+
+    const updateLanguage = (event) => {
+        if (event.target.value === customLanguageOption) {
+            setIsCustomLanguage(true)
+            setCustomLanguage('')
+            setLanguageError('')
+            return
+        }
+        setIsCustomLanguage(false)
+        setCustomLanguage('')
+        setLanguageError('')
+        setForm((currentForm) => ({ ...currentForm, language: event.target.value }))
     }
 
     const addTag = (value) => {
@@ -37,8 +58,30 @@ const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
 
     const submitForm = (event) => {
         event.preventDefault()
+        const title = form.title.trim()
+        if (!title) {
+            setTitleError('Enter a title to continue.')
+            return
+        }
+        const hasDuplicateTitle = existingSnippets.some((snippet) => (
+            (!initialSnippet || String(snippet.id) !== String(initialSnippet.id))
+            && String(snippet.title || '').trim().toLowerCase() === title.toLowerCase()
+        ))
+        if (hasDuplicateTitle) {
+            setTitleError('A snippet with this name already exists. Choose a different title.')
+            return
+        }
+
+        const language = (isCustomLanguage ? customLanguage : form.language).trim()
+        if (!language) {
+            setLanguageError('Enter a language to continue.')
+            return
+        }
+
         onSave({
             ...form,
+            title,
+            language,
             tags,
         })
     }
@@ -68,7 +111,8 @@ const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
                 >
                     <label className="block text-sm font-semibold text-[#E7E9EE]">
                         Title <span className="text-[#E87582]">*</span>
-                        <input required autoFocus name="title" value={form.title} onChange={updateField} placeholder="Express CORS setup" className={fieldClassName} />
+                        <input required autoFocus name="title" value={form.title} onChange={updateField} placeholder="Express CORS setup" aria-invalid={Boolean(titleError)} aria-describedby={titleError ? 'snippet-title-error' : undefined} className={fieldClassName} />
+                        {titleError && <span id="snippet-title-error" role="alert" className="mt-1.5 block text-xs font-normal text-[#E87582]">{titleError}</span>}
                     </label>
 
                     <label className="block text-sm font-semibold text-[#E7E9EE]">
@@ -79,10 +123,26 @@ const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
                     <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                         <label className="block text-sm font-semibold text-[#E7E9EE]">
                             Language <span className="text-[#E87582]">*</span>
-                            <select required name="language" value={form.language} onChange={updateField} className={fieldClassName}>
+                            <select required name="language" value={isCustomLanguage ? customLanguageOption : form.language} onChange={updateLanguage} className={fieldClassName}>
                                 <option value="" disabled>Select a language</option>
-                                {['JavaScript', 'TypeScript', 'Python', 'HTML', 'CSS', 'SQL', 'Bash', 'JSON', 'Other'].map((language) => <option key={language}>{language}</option>)}
+                                {[...new Set([...standardLanguages, ...existingSnippets.map((snippet) => snippet.language).filter(Boolean)])].map((language) => <option key={language} value={language}>{language}</option>)}
+                                <option value={customLanguageOption}>Add a language...</option>
                             </select>
+                            {isCustomLanguage && (
+                                <input
+                                    required
+                                    autoFocus
+                                    aria-label="Custom language"
+                                    value={customLanguage}
+                                    onChange={(event) => {
+                                        setCustomLanguage(event.target.value)
+                                        setLanguageError('')
+                                    }}
+                                    placeholder="Enter a language"
+                                    className={fieldClassName}
+                                />
+                            )}
+                            {languageError && <span role="alert" className="mt-1.5 block text-xs font-normal text-[#E87582]">{languageError}</span>}
                         </label>
                         <label className="block text-sm font-semibold text-[#E7E9EE]">
                             Category <span className="font-normal text-[#737C90]">(optional)</span>
@@ -132,7 +192,7 @@ const SnippetForm = ({ onClose, onSave, initialSnippet }) => {
                         <div className="flex h-9 items-center justify-between border-b border-[#252A37] bg-[#141821] px-3.5 text-xs text-[#8B93A7]">
                             <span className="inline-flex items-center gap-2">
                                 <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#7773FF]" />
-                                {form.language || 'Plain text'}
+                                {(isCustomLanguage ? customLanguage : form.language) || 'Plain text'}
                             </span>
                             <span className="hidden font-mono sm:inline">Ctrl + Enter to save</span>
                         </div>

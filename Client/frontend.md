@@ -182,7 +182,7 @@ The existing capitalization is intentional and must be preserved. Routes use laz
 
 ### Snippets
 
-`SnippetsPage` owns URL query state, the snippet array, search query, create/edit/delete callbacks, and persistence. `SnippetForm` collects required title/code plus description, language, category, and tags; in edit mode it is prefilled with the saved snippet. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays a saved snippet and provides an edit action, or shows an unavailable error state for missing/deleted IDs. Empty-state components guide first creation.
+`SnippetsPage` owns URL query state, the snippet array, search query, create/edit/delete callbacks, and persistence. `SnippetForm` collects a required, unique title and code plus description, language, category, and tags; title comparisons ignore leading/trailing whitespace and letter case. In edit mode it is prefilled with the saved snippet and excludes that record from duplicate-title checks. The language selector includes common languages, languages already used in the vault, and an option to enter a custom language; custom values are saved as normal language labels and are available in filters. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays a saved snippet and provides an edit action, or shows an unavailable error state for missing/deleted IDs. Empty-state components guide first creation.
 
 ### Tags and categories
 
@@ -250,7 +250,7 @@ No client unit/integration/e2e test, type-check, or formatter script is configur
 
 Verified checks for the current architecture are `npm.cmd run build` (successful) and `npm.cmd run lint` (successful with three React-quality warnings: state update in `ProfileAvatar` effect and render-time `Date.now()` in `SnippetCard`).
 
-Manual smoke checks should cover landing anchors, auth navigation, `/Snippet?create=1`, required form validation, tag entry with Enter/comma, search/category/language filters, deletion confirmation, dashboard refresh, mobile sidebar, and direct deep links.
+Manual smoke checks should cover landing anchors, auth navigation, `/Snippet?create=1`, required form validation, duplicate-title prevention (including case/whitespace variants and editing an existing title), custom language entry and filtering, tag entry with Enter/comma, search/category/language filters, deletion confirmation, dashboard refresh, mobile sidebar, and direct deep links.
 
 ## Development guides
 
