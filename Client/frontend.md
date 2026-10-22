@@ -109,7 +109,8 @@ Client/
 │   ├── shared/
 │   │   ├── components/              # Buttons, logo, sidebar, header, SEO
 │   │   ├── constants/navItems.jsx   # Workspace navigation
-│   │   └── hooks/useScrollToSection.js
+│   │   ├── hooks/useScrollToSection.js
+│   │   └── lib/profileStorage.js    # Browser-local profile persistence
 │   ├── index.css                    # Tailwind entry and global CSS
 │   └── main.jsx                     # React bootstrap
 ├── index.html
@@ -220,7 +221,7 @@ New records contain the following shape:
 
 ## Shared UI and styling
 
-Shared components include `SEO`, `Sidebar`, the sticky `DashboardHeader` (shared snippet search and profile navigation), `ProfileAvatar`, `Logo`, `HomeShortcut`, and the four button variants. All workspace pages use the shared header; submitting its search opens matching results in Snippets. `shared/constants/navItems.jsx` defines workspace navigation. `shared/hooks/useScrollToSection.js` is the shared landing scroll behavior. Keep feature-specific cards and forms in their feature; do not put business logic in generic buttons or layout components.
+Shared components include `SEO`, `Sidebar`, the sticky `DashboardHeader` (shared snippet search and profile navigation), `ProfileAvatar`, `Logo`, `HomeShortcut`, and the four button variants. All workspace pages use the shared header; submitting its search opens matching results in Snippets. `shared/constants/navItems.jsx` defines workspace navigation. `shared/hooks/useScrollToSection.js` is the shared landing scroll behavior. `shared/lib/profileStorage.js` owns profile localStorage keys, read/write helpers, and the in-tab profile update event. Keep feature-specific cards and forms in their feature; do not put business logic in generic buttons or layout components.
 
 `OfflinePage` is shown while the browser reports no network connection and returns to the app when connectivity is restored. `ErrorPage` is used for missing snippets and unexpected React render errors; its retry action returns to the appropriate route or reloads the app. Both status screens use responsive, viewport-filling layouts.
 
@@ -261,12 +262,12 @@ Manual smoke checks should cover landing anchors, auth navigation, `/Snippet?cre
 4. Keep state near its owner and pass explicit props/callbacks downward.
 5. Add loading, empty, validation, success, and error states for async behavior.
 6. Reuse `shared` only when code is feature-independent and used more than once.
-7. Update this guide's route/tree sections.
+7. Update `frontend.md` route/tree sections.
 8. Run lint, build, and manual route checks.
 
 ### Add or modify a component
 
-Use a descriptive PascalCase filename, semantic HTML, explicit props, and default export where consistent:
+Use a descriptive PascalCase filename, semantic HTML, explicit props, and default export where consistent. Keep shared components and utilities under `src/shared/` only when they are feature-independent and reused across features; otherwise keep them with their owning feature:
 
 ```jsx
 const EmptyPanel = ({ onCreate }) => (
