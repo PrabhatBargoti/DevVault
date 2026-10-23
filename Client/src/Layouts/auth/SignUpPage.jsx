@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import AuthProviderIcon from '../../components/AuthProviderIcon'
 import SEO from '../../components/SEO'
 import HomeShortcut from '../../components/HomeShortcut'
 import { getSupabaseClient } from '../../lib/supabase'
@@ -180,6 +181,7 @@ const SignUpPage = () => {
                   onClick={() => handleOAuthSignUp('github')}
                   className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  <AuthProviderIcon provider="github" />
                   Continue with GitHub
                 </button>
                 <button
@@ -188,6 +190,7 @@ const SignUpPage = () => {
                   onClick={() => handleOAuthSignUp('google')}
                   className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  <AuthProviderIcon provider="google" />
                   Continue with Google
                 </button>
               </form>
