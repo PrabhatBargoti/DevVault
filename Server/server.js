@@ -1,4 +1,10 @@
-require('dotenv').config
-const app = require('./src/app')
+require('dotenv').config()
 
-app.listen(3000, () => {})
+const app = require('./src/app')
+const { getConfig } = require('./src/config/env')
+
+const { port } = getConfig()
+
+app.listen(port, () => {
+  console.log(`DevVault API listening on port ${port}`)
+})
