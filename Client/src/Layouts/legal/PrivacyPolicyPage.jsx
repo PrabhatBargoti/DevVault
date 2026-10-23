@@ -8,25 +8,25 @@ const PrivacyPolicyPage = () => (
   >
     <p>
       This policy describes how DevVault handles information when you use the website. The current client stores
-      snippets and profile settings in your browser. If account authentication is configured, Supabase Auth processes
-      sign-up, login, OAuth, and password-reset requests. The client is not currently connected to the separate
-      snippet API, so browser-stored snippets are not synchronized to that API.
+      snippets and profile settings in your browser. Account authentication is not integrated into the client.
+      The backend validates Supabase access tokens for API requests, but the client does not initiate sign-in or
+      send snippet content to the separate snippet API.
     </p>
 
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Information you provide</h2>
       <ul className="mt-3 list-disc space-y-2 pl-6">
         <li>Snippets you enter are held in application memory for the active page session and are cleared when you reload or close the page. Profile details are stored in browser local storage.</li>
-        <li>For email registration, Supabase Auth receives your email, password credential, and the name you provide. DevVault does not receive or store your plaintext password.</li>
-        <li>If you choose Google or GitHub sign-in, the selected provider and Supabase process the account information needed to authenticate you.</li>
+        <li>Account registration, sign-in, and password recovery are not currently available in the client.</li>
+        <li>The backend can validate Supabase access tokens supplied with API requests. The client does not currently collect or send authentication credentials.</li>
       </ul>
     </section>
 
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">How information is used</h2>
       <p className="mt-3">
-        Information is used to provide the features you request, maintain your session-only snippets and profile, authenticate
-        accounts, and support account recovery. The client does not include an analytics package in its current
+        Information is used to provide the features you request and maintain your session-only snippets and profile.
+        The client does not include an analytics package in its current
         implementation.
       </p>
     </section>
@@ -36,9 +36,8 @@ const PrivacyPolicyPage = () => (
       <p className="mt-3">
         Snippets are held in memory only while the page is open and can be removed using the clear-session-vault
         control. Profile data remains in browser local storage until you remove it or clear browser data.
-        Authentication data is processed by
-        Supabase and, when selected, Google or GitHub. Those providers handle information under their own policies.
-        DevVault does not control their services or retention practices.
+        Supabase token validation is performed by the backend. Authentication providers are not currently connected
+        to the client.
       </p>
     </section>
 

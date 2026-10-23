@@ -224,7 +224,7 @@ const SettingFill = () => {
                   </span>
                   <div>
                     <h3 className="text-sm font-semibold text-[#E7E9EE]">Password and sessions</h3>
-                    <p className="mt-1 max-w-md text-sm leading-5 text-[#8B93A7]">Sign-in uses Supabase Auth. You can request an email password reset; signing out from the workspace is not available yet.</p>
+                    <p className="mt-1 max-w-md text-sm leading-5 text-[#8B93A7]">Account sign-in and password recovery are not available in the client yet; authentication will be connected through the server.</p>
                   </div>
                 </div>
                 <button

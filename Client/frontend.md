@@ -26,7 +26,7 @@ This guide describes the implemented React application in `Client/`. It is based
 
 DevVault is a dark-themed developer knowledge vault. The frontend presents a marketing landing page and a responsive workspace for saving, editing, revisiting, searching, filtering, and deleting code snippets, and organizing them by tag and category. It also contains route-level UI for authentication and settings.
 
-The client is a standalone Vite single-page application. It owns browser navigation, presentation, SEO metadata, Supabase Auth flows, and client state. Snippets live in memory only for the current page session and are cleared on reload; they are not written to browser storage. The client does not currently send snippet requests to the `Server/` package. Profile settings remain in browser storage.
+The client is a standalone Vite single-page application. It owns browser navigation, presentation, SEO metadata, and client state. Login, signup, and password screens are placeholders; authentication is not connected to the server. Snippets live in memory only for the current page session and are cleared on reload; they are not written to browser storage. The client does not currently send snippet requests to the `Server/` package. Profile settings remain in browser storage.
 
 ## Stack
 
@@ -38,7 +38,7 @@ The client is a standalone Vite single-page application. It owns browser navigat
 | Styling | Tailwind CSS `^4.3.3` through `@tailwindcss/vite` |
 | Icons | `lucide-react` / `lucide` `^1.46.0` |
 | Metadata | `react-helmet-async` `^3.0.0` |
-| Authentication | `@supabase/supabase-js` `2.117.1` |
+| Authentication | Not integrated; auth routes are UI placeholders |
 | Linting | Oxlint `^1.79.0` with React rules |
 | Language | JavaScript and JSX, native ES modules |
 | State | In-memory snippet store and browser localStorage for profile settings |
@@ -52,7 +52,7 @@ There is no TypeScript compiler, schema validator, form library, Redux-like stor
 D:\DevVault
 ├── Client/       React/Vite browser application
 ├── Server/       Express API and Supabase integration
-├── .env.example  Server configuration template
+├── Server/.env.example  Server configuration template
 └── README.md     Repository overview
 ```
 
@@ -65,7 +65,6 @@ Use a current Node.js LTS release and npm. From the repository root:
 ```bash
 cd Client
 npm install
-Copy-Item .env.example .env
 npm run dev
 ```
 
@@ -79,27 +78,17 @@ npm run preview
 
 On Windows systems where PowerShell blocks `npm.ps1`, use `npm.cmd run dev`, `npm.cmd run build`, or `npm.cmd run lint`.
 
-The client can run without Supabase configuration, but account creation, login, OAuth, and password recovery require the client environment values and a configured Supabase project. The server is a separate package with a `start` script and `Server/server.js` entry point.
+The client requires no Supabase configuration. Account creation, login, OAuth, and password recovery are not implemented in the client; the server is a separate package with a `start` script and `Server/server.js` entry point.
 
 ## Environment
 
-`Client/.env.example` documents the public client values used by Supabase Auth:
-
-| Variable | Consumer | Client required | Purpose | Safe example |
-| --- | --- | --- | --- | --- |
-| `VITE_SUPABASE_URL` | Client | Required for auth | Supabase project URL | `https://your-project.supabase.co` |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Client | Required for auth | Public/publishable Supabase key | `sb_publishable_...` |
-
-These values are public and are bundled into the browser. Never use a Supabase secret/service-role key, database password, or other private credential in a `VITE_*` variable. The separate server uses `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and a server-only secret key from `Server/.env`.
-
-For real email and OAuth flows, configure Email auth plus Google and GitHub providers in the Supabase dashboard. Add local and deployed app URLs to the Auth URL Configuration allowlist, including the `/Login`, `/Home`, and `/change-password` redirect destinations. Configure each provider's OAuth credentials and Supabase callback URL as described in the Supabase provider setup guides. Restart Vite after changing `.env`.
+The client has no environment variables for Supabase. Supabase configuration belongs to `Server/.env`; never expose server credentials in client code or `VITE_*` variables.
 
 ## Structure
 
 ```text
 Client/
 ├── public/                         # Logo, favicon, social image, robots, sitemap
-├── .env.example                    # Public Supabase Auth client settings
 ├── src/
 │   ├── Layouts/                    # Route pages and domain-specific UI
 │   │   ├── auth/                   # Login, signup, forgot and change password
@@ -154,10 +143,10 @@ Pages own state and callbacks; presentational components receive props. There is
 | URL | Component | Purpose | Access |
 | --- | --- | --- | --- |
 | `/` | `Layouts/landing/pages/LandingPage` | Marketing page | Public |
-| `/Signup` | `Layouts/auth/SignUpPage` | Email/password signup; requires acceptance of terms and privacy policy | Public |
-| `/Login` | `Layouts/auth/LoginPage` | Email/password and OAuth sign-in | Public |
-| `/forgot-password` | `Layouts/auth/ForgotPasswordPage` | Sends a Supabase password recovery email | Public |
-| `/change-password` | `Layouts/auth/ChangePasswordPage` | Validates the recovery session and updates the password | Recovery link/session required |
+| `/Signup` | `Layouts/auth/SignUpPage` | Signup placeholder with terms and privacy acceptance UI | Public |
+| `/Login` | `Layouts/auth/LoginPage` | Login placeholder | Public |
+| `/forgot-password` | `Layouts/auth/ForgotPasswordPage` | Password-recovery placeholder | Public |
+| `/change-password` | `Layouts/auth/ChangePasswordPage` | Password-change placeholder | Public |
 | `/privacy-policy` | `Layouts/legal/PrivacyPolicyPage` | Privacy notice linked from the landing footer | Public |
 | `/terms` | `Layouts/legal/TermsPage` | Terms and Conditions linked from signup and the landing footer | Public |
 | `/Home` | `Layouts/dashboard/pages/DashboardPage` | Workspace dashboard | No guard |
@@ -180,9 +169,7 @@ The existing capitalization is intentional and must be preserved. Routes use laz
 
 ### Authentication
 
-`LoginPage` and `SignUpPage` use Supabase Auth for email/password and Google/GitHub OAuth. Signup requires the user to check the Terms and Conditions consent box before email registration or either OAuth redirect can start; the social buttons on Login also require consent because Supabase OAuth can create a new account. Email signups record the accepted terms version and timestamp in user metadata. `ForgotPasswordPage` requests a Supabase recovery email whose redirect destination is `/change-password`; that page requires a valid Supabase session before it offers the password update form. Auth errors are shown in the page rather than being hidden.
-
-OAuth credentials, email delivery, confirmation behavior, site URL, and allowed redirect URLs must be configured in the Supabase dashboard. The legal pages contain initial product wording and should receive legal review before production use. Consent is gated in the client; this prototype does not maintain an immutable legal-consent audit record.
+The login, signup, forgot-password, and change-password routes are UI placeholders. They do not make authentication requests, create accounts, or change passwords. Signup retains its terms/privacy acceptance UI, but account creation and OAuth are unavailable until authentication is implemented through the server. The server-side Supabase integration remains isolated to `Server/`.
 
 ### Dashboard
 
@@ -198,7 +185,7 @@ The tags page derives tags and per-tag snippet counts from the current in-memory
 
 ### Settings
 
-The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs, so the workspace header uses the saved name initials and uploaded image. Account management remains limited: password recovery is available through the auth flow, but server account deletion is not implemented. Its Clear session vault action removes in-memory snippets for this session and leaves profile data intact. These controls do not create or delete a server account.
+The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs, so the workspace header uses the saved name initials and uploaded image. Account management remains limited: authentication and password recovery are unavailable until connected through the server, and server account deletion is not implemented. Its Clear session vault action removes in-memory snippets for this session and leaves profile data intact. These controls do not create or delete a server account.
 
 ## Persistence and data flow
 
@@ -234,7 +221,7 @@ Static assets live in `public/` and use root-relative URLs such as `/Logo.svg`, 
 
 ## API, auth, and security
 
-The frontend uses `@supabase/supabase-js` for authentication but has no protected routes or authorization checks. The separate Express server implements snippet API routes, but the frontend does not call them. Consequently, frontend route visibility is not authorization and localStorage is not secure storage.
+The frontend has no Supabase SDK or authentication integration and has no protected routes or authorization checks. The separate Express server implements snippet API routes, but the frontend does not call them. Consequently, frontend route visibility is not authorization and localStorage is not secure storage.
 
 When integrating the existing API, keep requests in domain services, centralize base URL handling, model loading/error states, preserve response contracts, and enforce authorization on the backend/database. Never expose server credentials in the client. Workspace/auth SEO uses `noindex` where configured, but that only controls indexing.
 
@@ -253,7 +240,7 @@ No client unit/integration/e2e test, type-check, or formatter script is configur
 
 Verified checks for the current architecture are `npm.cmd run build` (successful) and `npm.cmd run lint` (successful with three React-quality warnings: state update in `ProfileAvatar` effect and render-time `Date.now()` in `SnippetCard`).
 
-Manual smoke checks should cover landing/legal links, signup consent gating for email and OAuth, login, password reset email and recovery callback, `/Snippet?create=1`, required form validation, duplicate-title prevention (including case/whitespace variants and editing an existing title), custom language entry and filtering, tag entry with Enter/comma, search/category/language filters, deletion confirmation, dashboard refresh, mobile sidebar, and direct deep links.
+Manual smoke checks should cover landing/legal links, authentication placeholder messages, `/Snippet?create=1`, required form validation, duplicate-title prevention (including case/whitespace variants and editing an existing title), custom language entry and filtering, tag entry with Enter/comma, search/category/language filters, deletion confirmation, dashboard refresh, mobile sidebar, and direct deep links.
 
 ## Development guides
 
@@ -291,19 +278,19 @@ Keep network/storage work out of shared visual components. Avoid abstractions th
 - **Deep-link 404:** configure the host to rewrite application paths to `index.html`; see `Client/vercel.json`.
 - **Snippets disappeared:** snippets are session-only and are discarded on page reload or close.
 - **Missing asset:** verify the file is under `Client/public/` and use a root-relative URL.
-- **API/Supabase failure:** the client is not currently integrated with the API; verify the integration is implemented before debugging frontend network traffic.
+- **Authentication unavailable:** the client authentication screens are placeholders until server authentication is implemented.
 - **Lint warning:** fix the specific state derivation or time-dependent render logic rather than disabling React rules globally.
 
 ## Production
 
 Run `npm run build` and deploy `Client/dist/` to a static host with SPA fallback to `index.html`. Vercel uses the checked-in rewrite. Public assets are copied from `public/`.
 
-The client auth implementation requires Supabase project configuration and provider credentials, and there is no verified production deployment. The snippet client is not integrated with the API or Supabase data storage. Do not claim server-backed snippet persistence until implemented and tested end to end.
+The client has no authentication integration, and there is no verified production deployment. The snippet client is not integrated with the API or Supabase data storage. Do not claim server-backed authentication or snippet persistence until implemented and tested end to end.
 
 ## Limitations and contribution
 
 Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, in-session snippet create/edit/search/filter/display/delete flows, tag and category browsing, local profile settings, session-vault controls, and reusable shared controls.
 
-Partial or unimplemented: snippet persistence and API integration, protected client routes, server account deletion, tag/category editing independent of snippets, appearance settings, client automated tests, type checking, encryption, account scoping, and cross-device synchronization. Email/password and Google/GitHub auth flows are implemented through Supabase, but require dashboard configuration and have no immutable consent audit trail. The separate server package implements snippet API routes and Supabase persistence.
+Partial or unimplemented: client authentication, snippet persistence and API integration, protected client routes, server account creation, tag/category editing independent of snippets, appearance settings, client automated tests, type checking, encryption, account scoping, and cross-device synchronization. The separate server package implements snippet API routes and Supabase token validation and persistence.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.

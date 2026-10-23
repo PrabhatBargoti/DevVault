@@ -33,9 +33,9 @@ const TermsPage = () => (
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Accounts and third-party services</h2>
       <p className="mt-3">
-        Account sign-in may be provided by Supabase Auth and, if you choose, Google or GitHub. Those services have
-        separate terms and privacy policies. We may suspend access when reasonably necessary to protect the service,
-        users, or its security.
+        Account creation and sign-in are not currently available in the client. The backend uses Supabase to validate
+        access tokens for API requests. We may suspend access when reasonably necessary to protect the service, users,
+        or its security.
       </p>
     </section>
 

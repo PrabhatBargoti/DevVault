@@ -7,16 +7,15 @@ This repository is intentionally split into two main areas:
 - `Client/` — the browser application built with React, Vite, and Tailwind
 - `Server/` — the Express API, Supabase integration, and database migration
 
-The frontend provides the product UX and workflow, with account authentication through Supabase Auth. Snippets are held in memory for the active page session only and are not yet connected to the separately implemented backend API.
+The frontend provides the product UX and workflow. Client-side authentication is not currently connected; the login, signup, and password pages are placeholders until server authentication is implemented. Snippets are held in memory for the active page session only and are not yet connected to the separately implemented backend API.
 
 ## Project status
 
 The app is operational as a frontend prototype with the following implemented behaviors:
 
 - Landing page for product marketing and calls to action
-- Supabase email/password and Google/GitHub authentication screens
-- Required terms acceptance before signup through email or social providers
-- Password recovery email and password-change flow
+- Login, signup, and password pages retained as non-functional placeholders
+- Terms acceptance UI on signup
 - Privacy Policy and Terms and Conditions pages linked from the landing footer
 - Dashboard workspace with snippet overview, stats, and empty states
 - Snippet create, search, filter, display, and delete functionality
@@ -26,7 +25,7 @@ The app is operational as a frontend prototype with the following implemented be
 The following are still placeholders or intentionally unimplemented:
 
 - Frontend snippet workflows are not connected to the backend API or Supabase persistence
-- Email confirmation, delivery, and OAuth require Supabase dashboard configuration
+- Client authentication and password recovery are not connected to the server
 - User accounts and synchronization across devices
 - Production deployment pipeline and distributed rate-limit storage
 
@@ -40,7 +39,6 @@ D:\DevVault
 │   ├── package.json         # Frontend project config and scripts
 │   ├── vite.config.js       # Vite build tooling config
 │   ├── vercel.json          # SPA rewrite config for hosting
-│   ├── .env.example         # Public Supabase Auth client configuration template
 │   ├── frontend.md          # Detailed frontend engineering documentation
 │   └── ...
 ├── Server/                  # Express and Supabase API
@@ -64,7 +62,6 @@ D:\DevVault
 - Tailwind CSS
 - lucide-react for icons
 - react-helmet-async for document metadata
-- Supabase JS for client authentication
 - Oxlint for JS linting
 
 ### Backend
@@ -76,15 +73,15 @@ D:\DevVault
 
 ## Frontend overview
 
-The frontend app lives entirely under `Client/` and is designed as a Vite SPA with route-driven screens. Authentication uses Supabase Auth, while snippets and profile settings remain a browser-local prototype and are not synchronized with the API.
+The frontend app lives entirely under `Client/` and is designed as a Vite SPA with route-driven screens. Authentication screens are placeholders and do not currently connect to the server. Snippets and profile settings remain a browser-local prototype and are not synchronized with the API.
 
 ### Main routes
 
 - `/` — marketing landing page
-- `/Login` — login screen
-- `/Signup` — signup with required terms and privacy acceptance
-- `/forgot-password` — sends a password recovery email
-- `/change-password` — changes password from a valid recovery session
+- `/Login` — login placeholder
+- `/Signup` — signup placeholder with terms and privacy acceptance UI
+- `/forgot-password` — password-recovery placeholder
+- `/change-password` — password-change placeholder
 - `/privacy-policy` — privacy notice
 - `/terms` — Terms and Conditions
 - `/Home` — dashboard workspace
@@ -115,7 +112,7 @@ The current session-only store is temporary UI state, not durable storage. Do no
 
 ## Server overview
 
-The `Server/` package implements authenticated snippet CRUD endpoints, input validation, pagination, JSON payload limits, and IP/account rate limiting. Supabase Auth verifies bearer access tokens, and snippet data is stored in the `public.snippets` table created by the server migration. The frontend is not yet wired to these endpoints.
+The `Server/` package implements authenticated snippet CRUD endpoints, input validation, pagination, JSON payload limits, and IP/account rate limiting. Supabase Auth verifies bearer access tokens, and snippet data is stored in the `public.snippets` table created by the server migration. The frontend is not yet wired to these endpoints or the server's authentication flow.
 
 ## Environment and configuration
 
@@ -128,7 +125,7 @@ SUPABASE_SECRET_KEY=your-supabase-secret-key
 PORT=3000
 ```
 
-The Supabase secret key is server-only; do not expose it to frontend code or commit it. For client authentication, copy `Client/.env.example` to `Client/.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. These values are public; never put the server secret key in a `VITE_*` variable. Enable Email, Google, and GitHub providers and allow the local and deployed app redirect URLs in Supabase Auth settings.
+The Supabase secret key is server-only; do not expose it to frontend code or commit it. The client has no Supabase configuration or authentication SDK; do not add server credentials to client environment variables.
 
 ## Quick start
 
@@ -137,7 +134,6 @@ The Supabase secret key is server-only; do not expose it to frontend code or com
 ```bash
 cd Client
 npm install
-cp .env.example .env
 npm run dev
 ```
 
@@ -202,11 +198,11 @@ Reusable UI lives under `Client/src/components/`; client-wide hooks, storage hel
 
 ### Current implementation pattern
 
-The app uses route-level composition and a shared in-memory snippet store. Supabase Auth handles account workflows, but there is no global auth context or protected route. Snippet state is discarded when the page reloads; profile settings remain in browser local storage.
+The app uses route-level composition and a shared in-memory snippet store. Authentication screens are placeholders and there is no global auth context or protected route. Snippet state is discarded when the page reloads; profile settings remain in browser local storage.
 
 ### Security posture
 
-The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Snippet state is session-only, authentication is separate from snippet storage, and routes are not protected. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
+The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Snippet state is session-only, client authentication is not implemented, and routes are not protected. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
 
 ## Documentation
 
@@ -216,7 +212,7 @@ For the detailed implementation and engineering notes, see:
 - [Backend guide](Server/Backend.md)
 - [Contribution guide](CONTRIBUTING.md)
 
-The frontend guide covers architecture, routes, Supabase Auth setup, session-only snippet state, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
+The frontend guide covers architecture, routes, authentication placeholders, session-only snippet state, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
 
 ## Recommended next steps
 
@@ -230,4 +226,4 @@ Potential next steps include:
 
 ## Summary
 
-DevVault includes a polished frontend, Supabase Auth flows, and an authenticated, rate-limited snippet API. The frontend still stores snippets locally and is not connected to the API, so synchronized persistence and protected routes remain future integration work before the full product is production-ready.
+DevVault includes a polished frontend and an authenticated, rate-limited snippet API. Client authentication and snippet flows are not connected to the server, so authenticated UI and synchronized persistence remain future integration work before the full product is production-ready.

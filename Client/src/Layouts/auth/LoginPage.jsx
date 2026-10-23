@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthProviderIcon from '../../components/AuthProviderIcon'
 import SEO from '../../components/SEO'
 import HomeShortcut from '../../components/HomeShortcut'
-import { getSupabaseClient } from '../../lib/supabase'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -11,51 +10,26 @@ const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault()
-    if (busy) return
-
-    setBusy(true)
-    setError('')
-    try {
-      const { error: signInError } = await getSupabaseClient().auth.signInWithPassword({ email, password })
-      if (signInError) throw signInError
-      navigate('/Home', { replace: true })
-    } catch (requestError) {
-      setError(requestError.message || 'Could not log in. Please check your details and try again.')
-    } finally {
-      setBusy(false)
-    }
+    setError('Sign-in is unavailable until client authentication is connected to the server.')
   }
 
-  const handleOAuthSignIn = async (provider) => {
-    if (!acceptedTerms || busy) {
+  const handleOAuthSignIn = (provider) => {
+    if (!acceptedTerms) {
       setError('Accept the Terms and Conditions and Privacy Policy before continuing with a social account.')
       return
     }
-
-    setBusy(true)
-    setError('')
-    try {
-      const { error: oauthError } = await getSupabaseClient().auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: `${window.location.origin}/Home` },
-      })
-      if (oauthError) throw oauthError
-    } catch (requestError) {
-      setError(requestError.message || `Could not continue with ${provider}. Please try again.`)
-      setBusy(false)
-    }
+    setError(`${provider} sign-in is unavailable until client authentication is connected to the server.`)
   }
 
   return (
     <>
       <SEO
         title="Log in"
-        description="Log in to DevVault and access your code snippets, notes, and developer knowledge."
+        description="DevVault sign-in is not available in the client yet."
         path="/Login"
         noIndex
       />
@@ -66,6 +40,9 @@ const LoginPage = () => {
             <p className="mt-2 text-base text-[#8B93A7]">Sign in to your vault</p>
           </header>
           <main className="rounded-[20px] border border-[#232733] bg-[#12151C] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:p-6">
+            <p role="status" className="mb-4 rounded-lg border border-[#3B3652] bg-[#191725] p-3 text-sm text-[#C3C0E8]">
+              Sign-up and sign-in are not available in the client yet. Authentication will be connected through the server.
+            </p>
             {location.state?.message && (
               <p role="status" className="mb-4 text-sm text-emerald-400">{location.state.message}</p>
             )}
@@ -102,10 +79,9 @@ const LoginPage = () => {
               {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
               <button
                 type="submit"
-                disabled={busy}
                 className="w-full cursor-pointer rounded-lg bg-[#6E6BF4] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {busy ? 'Logging in…' : 'Log in'}
+                Log in
               </button>
             </form>
 
@@ -130,7 +106,7 @@ const LoginPage = () => {
               </label>
               <button
                 type="button"
-                disabled={busy || !acceptedTerms}
+                disabled={!acceptedTerms}
                 onClick={() => handleOAuthSignIn('github')}
                 className="w-full cursor-pointer rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -141,7 +117,7 @@ const LoginPage = () => {
               </button>
               <button
                 type="button"
-                disabled={busy || !acceptedTerms}
+                disabled={!acceptedTerms}
                 onClick={() => handleOAuthSignIn('google')}
                 className="w-full cursor-pointer rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
