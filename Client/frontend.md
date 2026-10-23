@@ -50,9 +50,9 @@ There is no TypeScript compiler, schema validator, form library, Redux-like stor
 ```text
 D:\DevVault
 ├── Client/       React/Vite browser application
-├── Server/       Express bootstrap and unused Supabase helper
-├── .env.example  Supabase placeholders
-└── README.md     Root README (currently empty)
+├── Server/       Express API and Supabase integration
+├── .env.example  Server configuration template
+└── README.md     Repository overview
 ```
 
 Keep browser code and public assets in `Client/`. The server is a separate package and is not imported by the Vite build. Do not move privileged database operations or credentials into browser code.
@@ -77,7 +77,7 @@ npm run preview
 
 On Windows systems where PowerShell blocks `npm.ps1`, use `npm.cmd run dev`, `npm.cmd run build`, or `npm.cmd run lint`.
 
-The client does not require the server, Supabase, a database, or frontend environment variables to start. The server has no declared start script; its current entry point is `Server/server.js`.
+The client does not require the server, Supabase, a database, or frontend environment variables to start. The server is a separate package with a `start` script and `Server/server.js` entry point.
 
 ## Environment
 
@@ -85,10 +85,10 @@ The root `.env.example` documents values intended for the server integration:
 
 | Variable | Consumer | Client required | Purpose | Safe example |
 | --- | --- | --- | --- | --- |
-| `SUPABASE_URL` | Intended server | No | Supabase project URL | `https://your-project.supabase.co` |
-| `SUPABASE_PUBLISHABLE_KEY` | Intended server | No | Publishable Supabase key | `your-publishable-key` |
+| `SUPABASE_URL` | Server | No | Supabase project URL | `https://your-project.supabase.co` |
+| `SUPABASE_PUBLISHABLE_KEY` | Server | No | Publishable Supabase key | `your-publishable-key` |
 
-No `VITE_*` variable is consumed by the current client. Browser-visible environment values are public; never put service-role keys, database passwords, or private API credentials in them. `Server/src/lib/supabse.js` is unused by `Server/src/app.js`, so Supabase is not an active client integration.
+No `VITE_*` variable is consumed by the current client. Browser-visible environment values are public; never put service-role keys, database passwords, or private API credentials in them. The server uses Supabase for authentication and database access, but the client does not currently call the server API.
 
 ## Structure
 
@@ -96,9 +96,8 @@ No `VITE_*` variable is consumed by the current client. Browser-visible environm
 Client/
 ├── public/                         # Logo, favicon, social image, robots, sitemap
 ├── src/
-│   ├── app/App.jsx                 # Route table and app shell
-│   ├── features/
-│   │   ├── auth/pages/             # Login, signup, forgot password
+│   ├── Layouts/                    # Route pages and domain-specific UI
+│   │   ├── auth/                   # Login, signup, forgot password
 │   │   ├── landing/{pages,components}/
 │   │   ├── dashboard/{pages,components}/
 │   │   ├── snippets/{pages,components,lib}/
@@ -106,11 +105,10 @@ Client/
 │   │   ├── settings/{pages,components}/
 │   │   ├── tags/{pages,components}/
 │   │   └── not-found/
-│   ├── shared/
-│   │   ├── components/              # Buttons, logo, sidebar, header, SEO
-│   │   ├── constants/navItems.jsx   # Workspace navigation
-│   │   ├── hooks/useScrollToSection.js
-│   │   └── lib/profileStorage.js    # Browser-local profile persistence
+│   ├── components/                 # Reusable UI: buttons, sidebar, header, SEO
+│   ├── hooks/useScrollToSection.js # Shared landing scroll behavior
+│   ├── lib/profileStorage.js       # Browser-local profile persistence
+│   ├── utils/navItems.jsx          # Workspace navigation
 │   ├── index.css                    # Tailwind entry and global CSS
 │   └── main.jsx                     # React bootstrap
 ├── index.html
@@ -120,7 +118,7 @@ Client/
 └── .oxlintrc.json
 ```
 
-The feature structure replaces broad legacy buckets. A feature page composes its screen; feature components implement cohesive UI; feature `lib` modules hold feature logic. `shared` is only for code reused across feature boundaries.
+`Layouts/` groups route pages and their domain-specific components and logic. `components/`, `hooks/`, `lib/`, and `utils/` hold reusable client-wide UI and helpers. Keep a domain-specific component near its owning layout; put code in a client-wide directory only when it is genuinely reused across domains.
 
 ## Bootstrap and architecture
 
@@ -133,13 +131,13 @@ BrowserRouter
         └── App
 ```
 
-`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` lazy-loads route pages and wraps them in a shared Suspense boundary; `RouteLoadingSkeleton` renders a responsive page-shaped fallback while a route chunk is loading. `index.html` also includes a small critical-CSS placeholder so the initial document is not blank while the JavaScript bundle downloads. The app shows the offline screen from browser connection events and catches React render errors with an error boundary. `src/shared/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
+`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` lazy-loads route pages and wraps them in a shared Suspense boundary; `RouteLoadingSkeleton` renders a responsive page-shaped fallback while a route chunk is loading. `index.html` also includes a small critical-CSS placeholder so the initial document is not blank while the JavaScript bundle downloads. The app shows the offline screen from browser connection events and catches React render errors with an error boundary. `src/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
 
 The normal data flow is:
 
 ```text
-route → feature page → feature components
-                    ↘ shared components
+route → layout page → domain components
+                    ↘ reusable components
 snippet form → snippets page state → localStorage
 dashboard    → snippets storage reader
 ```
@@ -150,19 +148,19 @@ Pages own state and callbacks; presentational components receive props. There is
 
 | URL | Component | Purpose | Access |
 | --- | --- | --- | --- |
-| `/` | `features/landing/pages/LandingPage` | Marketing page | Public |
-| `/Signup` | `features/auth/pages/SignUpPage` | Signup form UI | Public; no request |
-| `/Login` | `features/auth/pages/LoginPage` | Login form UI | Public; no request |
-| `/forgot-password` | `features/auth/pages/ForgotPasswordPage` | Local reset confirmation UI | Public; no email request |
-| `/Home` | `features/dashboard/pages/DashboardPage` | Workspace dashboard | No guard |
-| `/Snippet` | `features/snippets/pages/SnippetsPage` | Snippet management | No guard |
-| `/Snippet/:snippetId` | `features/snippets/pages/SnippetDetailPage` | View or edit a saved snippet; deleted or unknown IDs show an unavailable state | No guard |
+| `/` | `Layouts/landing/pages/LandingPage` | Marketing page | Public |
+| `/Signup` | `Layouts/auth/SignUpPage` | Signup form UI | Public; no request |
+| `/Login` | `Layouts/auth/LoginPage` | Login form UI | Public; no request |
+| `/forgot-password` | `Layouts/auth/ForgotPasswordPage` | Local reset confirmation UI | Public; no email request |
+| `/Home` | `Layouts/dashboard/pages/DashboardPage` | Workspace dashboard | No guard |
+| `/Snippet` | `Layouts/snippets/pages/SnippetsPage` | Snippet management | No guard |
+| `/Snippet/:snippetId` | `Layouts/snippets/pages/SnippetDetailPage` | View or edit a saved snippet; deleted or unknown IDs show an unavailable state | No guard |
 | `/Snippet?create=1` | Same snippets page | Opens create form | No guard |
 | `/Snippet?search=<term>` | Same snippets page | Shows matching search results; supports category and tag query filters | No guard |
-| `/Tags` | `features/tags/pages/TagsPage` | Search tags, view snippet counts, and open snippets for a tag; shows an empty state when no tags exist | No guard |
-| `/Categorie` | `features/categories/pages/CategoriesPage` | Browse category cards and snippet counts; open snippets in a category | No guard |
-| `/Setting` | `features/settings/pages/SettingsPage` | Edit local profile details and manage browser-stored snippets; appearance settings are not included | No guard |
-| `*` | `features/not-found/NotFoundPage` | 404 fallback | Public |
+| `/Tags` | `Layouts/tags/pages/TagsPage` | Search tags, view snippet counts, and open snippets for a tag; shows an empty state when no tags exist | No guard |
+| `/Categorie` | `Layouts/categories/pages/CategoriesPage` | Browse category cards and snippet counts; open snippets in a category | No guard |
+| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details and manage browser-stored snippets; appearance settings are not included | No guard |
+| `*` | `Layouts/not-found/NotFoundPage` | 404 fallback | Public |
 
 The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback; there are no redirects, nested route layouts, or protected-route wrappers. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
 
@@ -194,7 +192,7 @@ The settings page provides Profile and Account tabs; Appearance is intentionally
 
 ## Persistence and data flow
 
-`src/features/snippets/lib/snippetStorage.js` safely wraps browser localStorage. It uses:
+`src/Layouts/snippets/lib/snippetStorage.js` safely wraps browser localStorage. It uses:
 
 ```text
 devvault-snippets              JSON array of records
@@ -221,7 +219,7 @@ New records contain the following shape:
 
 ## Shared UI and styling
 
-Shared components include `SEO`, `Sidebar`, the sticky `DashboardHeader` (shared snippet search and profile navigation), `ProfileAvatar`, `Logo`, `HomeShortcut`, and the four button variants. All workspace pages use the shared header; submitting its search opens matching results in Snippets. `shared/constants/navItems.jsx` defines workspace navigation. `shared/hooks/useScrollToSection.js` is the shared landing scroll behavior. `shared/lib/profileStorage.js` owns profile localStorage keys, read/write helpers, and the in-tab profile update event. Keep feature-specific cards and forms in their feature; do not put business logic in generic buttons or layout components.
+Reusable components include `SEO`, `Sidebar`, the sticky `DashboardHeader` (shared snippet search and profile navigation), `ProfileAvatar`, `Logo`, `HomeShortcut`, and the four button variants; they live in `src/components/`. All workspace pages use the shared header; submitting its search opens matching results in Snippets. `src/utils/navItems.jsx` defines workspace navigation. `src/hooks/useScrollToSection.js` provides landing-page scroll behavior. `src/lib/profileStorage.js` owns profile localStorage keys, read/write helpers, and the in-tab profile update event. Keep domain-specific cards and forms under their owning `src/Layouts/<domain>/` directory; do not put business logic in generic buttons or layout components.
 
 `OfflinePage` is shown while the browser reports no network connection and returns to the app when connectivity is restored. `ErrorPage` is used for missing snippets and unexpected React render errors; its retry action returns to the appropriate route or reloads the app. Both status screens use responsive, viewport-filling layouts.
 
@@ -231,9 +229,9 @@ Static assets live in `public/` and use root-relative URLs such as `/Logo.svg`, 
 
 ## API, auth, and security
 
-The frontend currently has no `fetch`, axios, API service, auth context, session listener, protected route, or authorization check. Forms and social buttons are visual only. The Express server registers no application routes. Consequently, frontend route visibility is not authorization and localStorage is not secure storage.
+The frontend currently has no `fetch`, axios, API service, auth context, session listener, protected route, or authorization check. Forms and social buttons are visual only. The separate Express server implements snippet API routes, but the frontend does not call them. Consequently, frontend route visibility is not authorization and localStorage is not secure storage.
 
-When an API is introduced, keep requests in feature services, centralize base URL handling, model loading/error states, preserve response contracts, and enforce authorization on the backend/database. Never expose server credentials in the client. Workspace/auth SEO uses `noindex` where configured, but that only controls indexing.
+When integrating the existing API, keep requests in domain services, centralize base URL handling, model loading/error states, preserve response contracts, and enforce authorization on the backend/database. Never expose server credentials in the client. Workspace/auth SEO uses `noindex` where configured, but that only controls indexing.
 
 ## Scripts and verification
 
@@ -246,7 +244,7 @@ Run from `Client/`:
 | `npm run preview` | Serve the production build locally |
 | `npm run lint` | Run Oxlint |
 
-No client unit/integration/e2e test, type-check, or formatter script is configured. The server's `npm test` is a placeholder that exits with code 1.
+No client unit/integration/e2e test, type-check, or formatter script is configured. The server has a Node.js test-runner suite, invoked with `npm test` from `Server/`.
 
 Verified checks for the current architecture are `npm.cmd run build` (successful) and `npm.cmd run lint` (successful with three React-quality warnings: state update in `ProfileAvatar` effect and render-time `Date.now()` in `SnippetCard`).
 
@@ -254,20 +252,20 @@ Manual smoke checks should cover landing anchors, auth navigation, `/Snippet?cre
 
 ## Development guides
 
-### Add a feature
+### Add a route or domain
 
-1. Create `src/features/<name>/pages` and add `components/` or `lib/` only when needed.
+1. Create `src/Layouts/<name>/pages` and add `components/` or `lib/` only when needed.
 2. Put route-level composition in a page and register it in `src/app/App.jsx`.
 3. Add `SEO` metadata and preserve URL conventions.
 4. Keep state near its owner and pass explicit props/callbacks downward.
 5. Add loading, empty, validation, success, and error states for async behavior.
-6. Reuse `shared` only when code is feature-independent and used more than once.
+6. Put genuinely cross-domain UI in `src/components/`; shared helpers belong in `src/hooks/`, `src/lib/`, or `src/utils/` as appropriate.
 7. Update `frontend.md` route/tree sections.
 8. Run lint, build, and manual route checks.
 
 ### Add or modify a component
 
-Use a descriptive PascalCase filename, semantic HTML, explicit props, and default export where consistent. Keep shared components and utilities under `src/shared/` only when they are feature-independent and reused across features; otherwise keep them with their owning feature:
+Use a descriptive PascalCase filename, semantic HTML, explicit props, and default export where consistent. Keep reusable client-wide components and utilities under `src/components/`, `src/hooks/`, `src/lib/`, or `src/utils/`; otherwise keep them with their owning domain under `src/Layouts/`:
 
 ```jsx
 const EmptyPanel = ({ onCreate }) => (
@@ -288,19 +286,19 @@ Keep network/storage work out of shared visual components. Avoid abstractions th
 - **Deep-link 404:** configure the host to rewrite application paths to `index.html`; see `Client/vercel.json`.
 - **Snippets disappeared:** they are per-origin localStorage data; check browser privacy/site-data settings.
 - **Missing asset:** verify the file is under `Client/public/` and use a root-relative URL.
-- **API/Supabase failure:** the current client makes no such request; verify a backend route and feature service exist before debugging network traffic.
+- **API/Supabase failure:** the client is not currently integrated with the API; verify the integration is implemented before debugging frontend network traffic.
 - **Lint warning:** fix the specific state derivation or time-dependent render logic rather than disabling React rules globally.
 
 ## Production
 
 Run `npm run build` and deploy `Client/dist/` to a static host with SPA fallback to `index.html`. Vercel uses the checked-in rewrite. Public assets are copied from `public/`.
 
-There is no verified production auth, API endpoint, server deployment, database migration, or Supabase workflow. Do not claim those integrations are live until they are implemented and tested end to end.
+The server API and Supabase migration are implemented separately, but there is no verified production deployment and the client is not integrated with the API or Supabase Auth. Do not claim the client has real authentication or server-backed persistence until implemented and tested end to end.
 
 ## Limitations and contribution
 
 Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, local snippet create/edit/search/filter/display/delete flows, tag and category browsing, local profile settings and vault controls, reusable shared controls, and local persistence.
 
-Partial or unimplemented: authentication, social providers, password reset delivery, password/session management, server account deletion, tag/category editing independent of snippets, appearance settings, backend API routes, Supabase persistence, automated tests, type checking, encryption, account scoping, and cross-device synchronization.
+Partial or unimplemented: client authentication, social providers, password reset delivery, password/session management, server account deletion, tag/category editing independent of snippets, appearance settings, client API integration and Supabase persistence, client automated tests, type checking, encryption, account scoping, and cross-device synchronization. The separate server package implements snippet API routes and Supabase persistence.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.

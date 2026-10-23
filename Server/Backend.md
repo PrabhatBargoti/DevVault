@@ -1,6 +1,6 @@
 # DevVault Backend
 
-DevVault's backend is a Node.js and Express API that stores snippets in Supabase Postgres. The API requires a valid Supabase access token, scopes every database operation to the authenticated user, validates input, and applies request limits.
+DevVault's backend is a Node.js and Express API that stores snippets in Supabase Postgres. The API requires a valid Supabase access token, scopes every database operation to the authenticated user, validates input, and applies request limits. It is a separate package from `Client/`; the frontend currently uses browser storage and does not call these endpoints.
 
 ## Contents
 
@@ -249,24 +249,27 @@ Rate limits return `429 Too Many Requests` with a JSON error. Counters reset whe
 ## Project structure
 
 ```text
-Server/
-├── server.js                         # Loads environment and starts Express
-├── src/
-│   ├── app.js                        # Middleware and API route registration
-│   ├── config/env.js                 # Environment validation
-│   ├── lib/supabaseClient.js         # Supabase auth and database clients
-│   ├── middleware/
-│   │   ├── authenticate.js           # Access-token verification
-│   │   └── errorHandler.js           # Consistent API errors
-│   ├── routes/snippets.js            # Snippet HTTP endpoints
-│   ├── services/snippets.js          # Supabase data operations
-│   └── utils/
-│       ├── httpError.js              # HTTP error type
-│       └── snippetValidation.js      # Input and pagination validation
-├── supabase/migrations/              # Database schema and RLS policies
-├── test/                             # Node.js tests
-├── .env.example                      # Configuration template
-└── package.json
+D:\DevVault
+├── Client/                            # React/Vite app; not yet wired to this API
+├── README.md
+└── Server/
+    ├── server.js                      # Loads environment and starts Express
+    ├── src/
+    │   ├── app.js                     # Middleware and API route registration
+    │   ├── config/env.js              # Environment validation
+    │   ├── lib/supabaseClient.js      # Supabase auth and database clients
+    │   ├── middleware/
+    │   │   ├── authenticate.js        # Access-token verification
+    │   │   └── errorHandler.js        # Consistent API errors
+    │   ├── routes/snippets.js         # Snippet HTTP endpoints
+    │   ├── services/snippets.js       # Supabase data operations
+    │   └── utils/
+    │       ├── httpError.js           # HTTP error type
+    │       └── snippetValidation.js   # Input and pagination validation
+    ├── supabase/migrations/           # Database schema and RLS policies
+    ├── test/                          # Node.js tests
+    ├── .env.example                   # Configuration template
+    └── package.json
 ```
 
 ## Security and deployment notes

@@ -1,6 +1,6 @@
 # Contributing to DevVault
 
-Thank you for your interest in contributing to DevVault. This repository is currently focused on a frontend prototype for a developer knowledge vault, with a lightweight server scaffold for future backend work.
+Thank you for your interest in contributing to DevVault. This repository contains a frontend prototype for a developer knowledge vault and a separately implemented Express API backed by Supabase.
 
 This guide explains the expected contribution flow, project structure, and practical standards for making safe, reviewable changes.
 
@@ -9,7 +9,7 @@ This guide explains the expected contribution flow, project structure, and pract
 DevVault is organized into two main areas:
 
 - `Client/` — the React + Vite frontend application
-- `Server/` — a minimal Express backend scaffold and Supabase placeholder setup
+- `Server/` — the Express API, Supabase integration, and database migrations
 
 The current frontend is the primary product surface. Most user-facing work should happen in the client app unless a change is clearly required for backend or infrastructure development.
 
@@ -23,7 +23,7 @@ D:\DevVault
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── vercel.json
-│   ├── FRONTEND.md
+│   ├── frontend.md
 │   └── ...
 ├── Server/
 │   ├── src/
@@ -31,7 +31,6 @@ D:\DevVault
 │   └── server.js
 ├── .env.example
 ├── README.md
-├── frontend.md
 ├── CONTRIBUTING.md
 └── .gitignore
 ```
@@ -70,17 +69,17 @@ npm run lint
 
 ## Frontend contribution guidelines
 
-### Keep feature code in the right place
+### Keep domain code in the right place
 
-Follow the current structure under `Client/src/features/` and keep domain-specific work near the owning feature.
+Follow the current structure under `Client/src/Layouts/` and keep domain-specific work near the owning layout.
 
 Examples:
 
-- auth screens belong in `src/features/auth/`
-- dashboard work belongs in `src/features/dashboard/`
-- snippet logic belongs in `src/features/snippets/`
+- auth screens belong in `src/Layouts/auth/`
+- dashboard work belongs in `src/Layouts/dashboard/`
+- snippet logic belongs in `src/Layouts/snippets/`
 
-Shared UI should live in `Client/src/shared/` only when it is genuinely reused across feature boundaries.
+Reusable client-wide UI belongs in `Client/src/components/`. Reusable hooks, storage helpers, and utilities belong in `Client/src/hooks/`, `Client/src/lib/`, and `Client/src/utils/` respectively. Keep one-domain components inside that domain's `Layouts/` folder.
 
 ### Preserve the current route behavior
 
@@ -107,21 +106,22 @@ When implementing features that involve real user data, authentication, or secre
 
 ## Backend contribution guidelines
 
-The `Server/` package is a scaffold and not yet a full production backend. If you contribute there, keep changes aligned with future architecture goals and avoid hard-coding environment assumptions.
-
-When working on server code:
+The `Server/` package implements authenticated snippet CRUD endpoints, validation, pagination, rate limiting, and Supabase data access. It is not yet deployed as a production service and is not integrated with the client. When working on server code:
 
 - keep the app structure clean and modular
 - use environment variables for configuration
 - document assumptions clearly
-- avoid shipping unused or experimental integrations as if they are production-ready
+- keep database access scoped to the authenticated user
+- do not expose server-only Supabase secrets
+- update `Server/Backend.md` when API behavior or configuration changes
 
 ## Documentation expectations
 
 If you change architecture, route layout, setup steps, or feature behavior, update the related docs in:
 
 - [README.md](README.md)
-- [Client/FRONTEND.md](Client/FRONTEND.md)
+- [Client/frontend.md](Client/frontend.md)
+- [Server/Backend.md](Server/Backend.md)
 
 This helps keep the repository understandable for future contributors and reviewers.
 
@@ -151,7 +151,7 @@ If your change affects behavior beyond lint/build, include manual validation not
 
 This project is still in an early product/prototype phase. Contributions should be thoughtful, well-scoped, and honest about what is implemented versus what is still a placeholder.
 
-If your change introduces a real backend, auth system, database integration, or deployment workflow, document that clearly and avoid claiming it is production-ready without evidence.
+If your change introduces client/API integration, auth behavior, database changes, or a deployment workflow, document that clearly and avoid claiming it is production-ready without evidence.
 
 ## Questions and feedback
 

@@ -37,7 +37,7 @@ D:\DevVault
 │   ├── package.json         # Frontend project config and scripts
 │   ├── vite.config.js       # Vite build tooling config
 │   ├── vercel.json          # SPA rewrite config for hosting
-│   ├── FRONTEND.md          # Detailed frontend engineering documentation
+│   ├── frontend.md          # Detailed frontend engineering documentation
 │   └── ...
 ├── Server/                  # Express and Supabase API
 │   ├── src/                 # API routes, middleware, services, and utilities
@@ -45,6 +45,7 @@ D:\DevVault
 │   ├── Backend.md           # Detailed backend documentation
 │   ├── package.json         # Server package config and scripts
 │   └── server.js            # Express entry point
+├── CONTRIBUTING.md          # Contribution workflow and guidelines
 ├── README.md                # Repository overview (this file)
 └── .gitignore
 ```
@@ -80,9 +81,9 @@ The frontend app lives entirely under `Client/` and is designed as a Vite SPA wi
 - `/forgot-password` — reset flow placeholder page
 - `/Home` — dashboard workspace
 - `/Snippet` — snippet workspace and creation tool
-- `/Tags` — tags placeholder
-- `/Categorie` — categories placeholder
-- `/Setting` — settings placeholder
+- `/Tags` — browse and search snippet tags
+- `/Categorie` — browse snippet categories
+- `/Setting` — local profile and vault settings
 - `*` — not-found page
 
 The route URLs are intentionally capitalized to match the existing app behavior and are preserved in the frontend implementation.
@@ -180,7 +181,7 @@ See the [backend guide](Server/Backend.md) for local Supabase setup, configurati
 
 ### Architectural approach
 
-The project follows a feature-oriented frontend structure under `Client/src/features/`, with UI grouped by domain areas such as:
+The client groups route pages and domain-specific UI under `Client/src/Layouts/`:
 
 - auth
 - landing
@@ -191,7 +192,7 @@ The project follows a feature-oriented frontend structure under `Client/src/feat
 - tags
 - not-found
 
-Shared UI and helpers live under `Client/src/shared/` and are only used when reusable across multiple feature boundaries.
+Reusable UI lives under `Client/src/components/`; client-wide hooks, storage helpers, and utilities live under `Client/src/hooks/`, `Client/src/lib/`, and `Client/src/utils/`. Domain-specific UI and logic stay under the matching `Layouts/` directory.
 
 ### Current implementation pattern
 
@@ -205,8 +206,9 @@ The frontend is intentionally a prototype and should not be treated as productio
 
 For the detailed implementation and engineering notes, see:
 
-- [Frontend guide](Client/FRONTEND.md)
+- [Frontend guide](Client/frontend.md)
 - [Backend guide](Server/Backend.md)
+- [Contribution guide](CONTRIBUTING.md)
 
 The frontend guide covers architecture, routes, local persistence, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
 
