@@ -76,7 +76,7 @@ D:\DevVault
 
 ## Frontend overview
 
-The frontend app lives entirely under `Client/` and is designed as a Vite SPA with route-driven screens. It currently behaves like a polished mock product experience rather than a fully connected application.
+The frontend app lives entirely under `Client/` and is designed as a Vite SPA with route-driven screens. Authentication uses Supabase Auth, while snippets and profile settings remain a browser-local prototype and are not synchronized with the API.
 
 ### Main routes
 

@@ -92,7 +92,7 @@ The client can run without Supabase configuration, but account creation, login, 
 
 These values are public and are bundled into the browser. Never use a Supabase secret/service-role key, database password, or other private credential in a `VITE_*` variable. The separate server uses `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and a server-only secret key from `Server/.env`.
 
-For real email and OAuth flows, configure Email auth plus Google and GitHub providers in the Supabase dashboard. Add local and deployed app URLs to the Auth URL Configuration allowlist, including `/change-password` as a redirect destination. Configure each provider's OAuth credentials and Supabase callback URL as described in the Supabase provider setup guides. Restart Vite after changing `.env`.
+For real email and OAuth flows, configure Email auth plus Google and GitHub providers in the Supabase dashboard. Add local and deployed app URLs to the Auth URL Configuration allowlist, including the `/Login`, `/Home`, and `/change-password` redirect destinations. Configure each provider's OAuth credentials and Supabase callback URL as described in the Supabase provider setup guides. Restart Vite after changing `.env`.
 
 ## Structure
 
