@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import SEO from '../../../components/SEO'
 import Sidebar from '../../../components/Sidebar'
@@ -6,11 +6,11 @@ import SnippetForm from '../components/SnippetForm'
 import SnippetEmpty from '../components/snippetEmpty'
 import Snippet from '../components/Snippet'
 import DashboardHeader from '../../../components/DashboardHeader'
-import { getSavedSnippets, markSnippetCreated, saveSnippets } from '../lib/snippetStorage'
+import { setSnippets, useSnippets } from '../../../lib/snippetStore'
 
 const Snippets = ({ user }) => {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [snippets, setSnippets] = useState(getSavedSnippets)
+  const snippets = useSnippets()
   const searchQuery = searchParams.get('search') || ''
   const categoryFilter = searchParams.get('category') || ''
   const tagFilter = searchParams.get('tag') || ''
@@ -37,12 +37,7 @@ const Snippets = ({ user }) => {
     })
   }
 
-  useEffect(() => {
-    saveSnippets(snippets)
-  }, [snippets])
-
   const createSnippet = (snippet) => {
-    markSnippetCreated()
     setSnippets((currentSnippets) => [
       { ...snippet, id: `${Date.now()}`, createdAt: new Date().toISOString() },
       ...currentSnippets,

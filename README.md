@@ -1,13 +1,13 @@
 # DevVault
 
-DevVault is a dark-themed developer workspace and knowledge vault designed for saving, organizing, browsing, and revisiting code snippets. The repository contains a React single-page frontend and an Express API backed by Supabase. The frontend's snippet workflow currently uses browser `localStorage`; it has not yet been connected to the backend API.
+DevVault is a dark-themed developer workspace and knowledge vault designed for saving, organizing, browsing, and revisiting code snippets. The repository contains a React single-page frontend and an Express API backed by Supabase. The client currently keeps snippets in memory only for the active page session and is not yet connected to the backend API.
 
 This repository is intentionally split into two main areas:
 
 - `Client/` — the browser application built with React, Vite, and Tailwind
 - `Server/` — the Express API, Supabase integration, and database migration
 
-The frontend provides the product UX and workflow, with account authentication through Supabase Auth. The snippet workflow still uses browser storage and is not yet connected to the separately implemented backend API.
+The frontend provides the product UX and workflow, with account authentication through Supabase Auth. Snippets are held in memory for the active page session only and are not yet connected to the separately implemented backend API.
 
 ## Project status
 
@@ -20,7 +20,7 @@ The app is operational as a frontend prototype with the following implemented be
 - Privacy Policy and Terms and Conditions pages linked from the landing footer
 - Dashboard workspace with snippet overview, stats, and empty states
 - Snippet create, search, filter, display, and delete functionality
-- Browser-based persistence using `localStorage`
+- Session-only snippet handling; snippets are not saved to browser storage
 - Responsive dark UI with route-based navigation
 
 The following are still placeholders or intentionally unimplemented:
@@ -96,12 +96,9 @@ The frontend app lives entirely under `Client/` and is designed as a Vite SPA wi
 
 The route URLs are intentionally capitalized to match the existing app behavior and are preserved in the frontend implementation.
 
-### Data model and persistence
+### Data model and session state
 
-Snippet data is stored in browser `localStorage` with keys such as:
-
-- `devvault-snippets` — array of saved snippet objects
-- `devvault-has-created-snippet` — a boolean marker used by empty-state logic
+Snippet data is held in memory while the current page session is open. It is discarded on reload or close; persistent backend storage will be connected later. Profile settings are stored separately in browser `localStorage`.
 
 Each snippet record includes:
 
@@ -114,7 +111,7 @@ Each snippet record includes:
 - `tags`
 - `createdAt`
 
-This provides a simple demo persistence layer, but it is not encrypted, user-scoped, synchronized, or secure enough for real production data.
+The current session-only store is temporary UI state, not durable storage. Do not enter secrets in snippets.
 
 ## Server overview
 
@@ -205,11 +202,11 @@ Reusable UI lives under `Client/src/components/`; client-wide hooks, storage hel
 
 ### Current implementation pattern
 
-The app uses React local state and route-level composition instead of a centralized application store. Supabase Auth handles account workflows, but there is no global auth context or protected route. Snippets and profile settings remain in browser local storage.
+The app uses route-level composition and a shared in-memory snippet store. Supabase Auth handles account workflows, but there is no global auth context or protected route. Snippet state is discarded when the page reloads; profile settings remain in browser local storage.
 
 ### Security posture
 
-The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Browser `localStorage` is not secure storage; authentication is separate from snippet storage, and routes are not protected. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
+The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Snippet state is session-only, authentication is separate from snippet storage, and routes are not protected. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
 
 ## Documentation
 
@@ -219,7 +216,7 @@ For the detailed implementation and engineering notes, see:
 - [Backend guide](Server/Backend.md)
 - [Contribution guide](CONTRIBUTING.md)
 
-The frontend guide covers architecture, routes, Supabase Auth setup, local persistence, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
+The frontend guide covers architecture, routes, Supabase Auth setup, session-only snippet state, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
 
 ## Recommended next steps
 

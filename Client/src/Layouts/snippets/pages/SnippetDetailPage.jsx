@@ -5,13 +5,13 @@ import Sidebar from '../../../components/Sidebar'
 import DashboardHeader from '../../../components/DashboardHeader'
 import ErrorPage from '../../../components/ErrorPage'
 import SnippetForm from '../components/SnippetForm'
-import { getSavedSnippets, saveSnippets } from '../lib/snippetStorage'
+import { setSnippets, useSnippets } from '../../../lib/snippetStore'
 
 const SnippetDetailPage = () => {
   const { snippetId } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [snippets, setSnippets] = useState(getSavedSnippets)
+  const snippets = useSnippets()
   const [isEditing, setIsEditing] = useState(() => searchParams.get('edit') === '1')
   const snippet = snippets.find((savedSnippet) => String(savedSnippet.id) === snippetId)
 
@@ -25,11 +25,9 @@ const SnippetDetailPage = () => {
   }
 
   const updateSnippet = (updates) => {
-    const updatedSnippets = snippets.map((savedSnippet) => (
+    setSnippets((currentSnippets) => currentSnippets.map((savedSnippet) => (
       String(savedSnippet.id) === snippetId ? { ...savedSnippet, ...updates } : savedSnippet
-    ))
-    saveSnippets(updatedSnippets)
-    setSnippets(updatedSnippets)
+    )))
     closeEditing()
   }
 

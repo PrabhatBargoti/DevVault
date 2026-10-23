@@ -24,8 +24,9 @@ const TermsPage = () => (
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Your content</h2>
       <p className="mt-3">
         You retain your rights to content you submit. You give DevVault permission to process that content only as
-        needed to provide and maintain the features you use. In the current client, snippets and profile settings are
-        stored locally in your browser and are not synchronized with the separate snippet API.
+        needed to provide and maintain the features you use. In the current client, snippets are held in memory for
+        the active page session and are discarded when you reload or close the page. Profile settings are stored
+        locally in your browser. Snippets are not synchronized with the separate snippet API.
       </p>
     </section>
 

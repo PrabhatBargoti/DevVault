@@ -95,7 +95,7 @@ The project already has a route structure and URL conventions. Avoid introducing
 
 ### Avoid insecure patterns
 
-The frontend currently stores snippet data in browser `localStorage` for demo purposes only. Do not assume this is production-safe storage.
+The frontend keeps snippet data in memory for the active page session only; it is discarded when the page reloads or closes. Do not add browser persistence for snippets. The separate profile settings still use localStorage.
 
 When implementing features that involve real user data, authentication, or secrets:
 

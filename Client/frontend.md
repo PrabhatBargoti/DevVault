@@ -26,7 +26,7 @@ This guide describes the implemented React application in `Client/`. It is based
 
 DevVault is a dark-themed developer knowledge vault. The frontend presents a marketing landing page and a responsive workspace for saving, editing, revisiting, searching, filtering, and deleting code snippets, and organizing them by tag and category. It also contains route-level UI for authentication and settings.
 
-The client is a standalone Vite single-page application. It owns browser navigation, presentation, SEO metadata, Supabase Auth flows, local React state, and localStorage persistence. It does not currently send snippet requests to the `Server/` package; settings profile data and the snippet vault remain local to the browser.
+The client is a standalone Vite single-page application. It owns browser navigation, presentation, SEO metadata, Supabase Auth flows, and client state. Snippets live in memory only for the current page session and are cleared on reload; they are not written to browser storage. The client does not currently send snippet requests to the `Server/` package. Profile settings remain in browser storage.
 
 ## Stack
 
@@ -41,7 +41,7 @@ The client is a standalone Vite single-page application. It owns browser navigat
 | Authentication | `@supabase/supabase-js` `2.117.1` |
 | Linting | Oxlint `^1.79.0` with React rules |
 | Language | JavaScript and JSX, native ES modules |
-| State | React local state and browser localStorage |
+| State | In-memory snippet store and browser localStorage for profile settings |
 | Tests | No client test framework configured |
 
 There is no TypeScript compiler, schema validator, form library, Redux-like store, React Query client, or frontend API client configured.
@@ -144,8 +144,7 @@ The normal data flow is:
 ```text
 route → layout page → domain components
                     ↘ reusable components
-snippet form → snippets page state → localStorage
-dashboard    → snippets storage reader
+snippet form → in-memory snippet store ↔ dashboard/tags/categories
 ```
 
 Pages own state and callbacks; presentational components receive props. There is no global application store or provider for user/session data.
@@ -168,7 +167,7 @@ Pages own state and callbacks; presentational components receive props. There is
 | `/Snippet?search=<term>` | Same snippets page | Shows matching search results; supports category and tag query filters | No guard |
 | `/Tags` | `Layouts/tags/pages/TagsPage` | Search tags, view snippet counts, and open snippets for a tag; shows an empty state when no tags exist | No guard |
 | `/Categorie` | `Layouts/categories/pages/CategoriesPage` | Browse category cards and snippet counts; open snippets in a category | No guard |
-| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details and manage browser-stored snippets; appearance settings are not included | No guard |
+| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details and clear current-session snippets; appearance settings are not included | No guard |
 | `*` | `Layouts/not-found/NotFoundPage` | 404 fallback | Public |
 
 The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback; there are no redirects, nested route layouts, or protected-route wrappers. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
@@ -187,28 +186,23 @@ OAuth credentials, email delivery, confirmation behavior, site URL, and allowed 
 
 ### Dashboard
 
-`DashboardPage` reads saved snippets and the created marker, renders the shared `DashboardHeader` and `Sidebar`, and chooses `HomeEmpty` or `HomeFill`. Filled dashboards delegate statistics, quick actions, recent snippets, and insights to focused components. Deletion updates state and is persisted.
+`DashboardPage` reads the in-memory snippets store and session-created marker, renders the shared `DashboardHeader` and `Sidebar`, and chooses `HomeEmpty` or `HomeFill`. Filled dashboards delegate statistics, quick actions, recent snippets, and insights to focused components. Deletion updates the shared in-memory store.
 
 ### Snippets
 
-`SnippetsPage` owns URL query state, the snippet array, search query, create/edit/delete callbacks, and persistence. `SnippetForm` collects a required, unique title and code plus description, language, category, and tags; title comparisons ignore leading/trailing whitespace and letter case. In edit mode it is prefilled with the saved snippet and excludes that record from duplicate-title checks. The language selector includes common languages, languages already used in the vault, and an option to enter a custom language; custom values are saved as normal language labels and are available in filters. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays a saved snippet and provides an edit action, or shows an unavailable error state for missing/deleted IDs. Empty-state components guide first creation.
+`SnippetsPage` owns URL query state and uses the shared in-memory snippet store for create/edit/delete callbacks. `SnippetForm` collects a required, unique title and code plus description, language, category, and tags; title comparisons ignore leading/trailing whitespace and letter case. In edit mode it is prefilled with the saved snippet and excludes that record from duplicate-title checks. The language selector includes common languages, languages already used in the vault, and an option to enter a custom language; custom values are available in filters. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays a snippet available in the current session and provides an edit action; snippets are lost on reload. Empty-state components guide first creation.
 
 ### Tags and categories
 
-The tags page derives tags and per-tag snippet counts from saved snippet records, supports searching the tag list, and links each tag to matching snippet results. It shows an empty state when no snippets have tags and a separate no-match state for an empty search. The categories page derives category cards and counts from saved snippets, adapts the grid to the viewport, and links each category to its filtered snippets. Both features use the existing snippet localStorage; they do not maintain separate tag or category stores.
+The tags page derives tags and per-tag snippet counts from the current in-memory snippet records, supports searching the tag list, and links each tag to matching snippet results. It shows an empty state when no session snippets have tags and a separate no-match state for an empty search. The categories page derives category cards and counts from current session snippets, adapts the grid to the viewport, and links each category to its filtered snippets. Both features use the same in-memory store.
 
 ### Settings
 
-The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs, so the workspace header uses the saved name initials and uploaded image. Account management remains limited: password recovery is available through the auth flow, but server account deletion is not implemented. Its Clear local vault action removes saved snippets and the dashboard's created marker after an accessible confirmation; it leaves profile data intact. These controls do not create or delete a server account.
+The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs, so the workspace header uses the saved name initials and uploaded image. Account management remains limited: password recovery is available through the auth flow, but server account deletion is not implemented. Its Clear session vault action removes in-memory snippets for this session and leaves profile data intact. These controls do not create or delete a server account.
 
 ## Persistence and data flow
 
-`src/Layouts/snippets/lib/snippetStorage.js` safely wraps browser localStorage. It uses:
-
-```text
-devvault-snippets              JSON array of records
-devvault-has-created-snippet   "true" marker for dashboard empty-state behavior
-```
+`src/lib/snippetStore.js` holds snippet records and the dashboard's created marker in application memory only. It uses React's external-store subscription API so the snippets, dashboard, tags, categories, and detail screens see consistent data while navigating. Reloading or closing the page clears the snippets. On startup the store also removes the old `devvault-snippets` and `devvault-has-created-snippet` localStorage entries left by the previous implementation.
 
 New records contain the following shape:
 
@@ -226,7 +220,7 @@ New records contain the following shape:
 }
 ```
 
-`SnippetsPage` adds `id` and ISO `createdAt`, prepends new records, and writes state through an effect. Editing updates the matching record, preserves its ID and creation date, sets `updatedAt`, and saves the revised array. Search text is represented in the URL; tag/category filters use URL parameters, while language filtering is local to the snippets view. Tags and categories are derived from the same saved records. The dashboard reads the same store on mount. Malformed JSON and storage failures are caught and fall back safely. Clearing browser site data clears the vault. This storage is not encrypted, account-scoped, synchronized, or suitable for secrets.
+`SnippetsPage` adds `id` and ISO `createdAt` and prepends new records to the shared store. Editing updates the matching record, preserves its ID and creation date, and sets `updatedAt`. Search text is represented in the URL; tag/category filters use URL parameters, while language filtering is local to the snippets view. Tags, categories, and the dashboard derive data from the shared in-memory records. Snippet persistence and backend synchronization are intentionally not implemented yet; all snippets are discarded when the page reloads or closes. Profile localStorage remains separate and is not used for snippet content.
 
 ## Shared UI and styling
 
@@ -295,7 +289,7 @@ Keep network/storage work out of shared visual components. Avoid abstractions th
 
 - **PowerShell blocks npm:** use `npm.cmd`.
 - **Deep-link 404:** configure the host to rewrite application paths to `index.html`; see `Client/vercel.json`.
-- **Snippets disappeared:** they are per-origin localStorage data; check browser privacy/site-data settings.
+- **Snippets disappeared:** snippets are session-only and are discarded on page reload or close.
 - **Missing asset:** verify the file is under `Client/public/` and use a root-relative URL.
 - **API/Supabase failure:** the client is not currently integrated with the API; verify the integration is implemented before debugging frontend network traffic.
 - **Lint warning:** fix the specific state derivation or time-dependent render logic rather than disabling React rules globally.
@@ -308,8 +302,8 @@ The client auth implementation requires Supabase project configuration and provi
 
 ## Limitations and contribution
 
-Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, local snippet create/edit/search/filter/display/delete flows, tag and category browsing, local profile settings and vault controls, reusable shared controls, and local persistence.
+Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, in-session snippet create/edit/search/filter/display/delete flows, tag and category browsing, local profile settings, session-vault controls, and reusable shared controls.
 
-Partial or unimplemented: protected client routes, server account deletion, tag/category editing independent of snippets, appearance settings, client API integration and Supabase snippet persistence, client automated tests, type checking, encryption, account scoping, and cross-device synchronization. Email/password and Google/GitHub auth flows are implemented through Supabase, but require dashboard configuration and have no immutable consent audit trail. The separate server package implements snippet API routes and Supabase persistence.
+Partial or unimplemented: snippet persistence and API integration, protected client routes, server account deletion, tag/category editing independent of snippets, appearance settings, client automated tests, type checking, encryption, account scoping, and cross-device synchronization. Email/password and Google/GitHub auth flows are implemented through Supabase, but require dashboard configuration and have no immutable consent audit trail. The separate server package implements snippet API routes and Supabase persistence.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.

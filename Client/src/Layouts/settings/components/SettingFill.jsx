@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, ImagePlus, LockKeyhole, ShieldCheck, Trash2, UserRound } from 'lucide-react'
 import { getSavedProfile, saveProfile as persistProfile } from '../../../lib/profileStorage'
+import { clearSnippets } from '../../../lib/snippetStore'
 
 const AVATAR_SIZE_LIMIT = 1024 * 1024
 const inputClassName = 'mt-1.5 min-h-11 w-full rounded-lg border border-[#2B3040] bg-[#12151C] px-3.5 text-sm text-[#E7E9EE] outline-none transition-colors placeholder:text-[#5A6275] focus:border-[#6E6BF4] focus:ring-2 focus:ring-[#6E6BF4]/20'
@@ -75,13 +76,9 @@ const SettingFill = () => {
   }
 
   const clearVault = () => {
-    try {
-      window.localStorage.removeItem('devvault-snippets')
-      window.localStorage.removeItem('devvault-has-created-snippet')
-      navigate('/Home')
-    } catch {
-      setError('Could not clear your local vault. Check your browser storage and try again.')
-    }
+    clearSnippets()
+    setIsClearDialogOpen(false)
+    navigate('/Home')
   }
 
   const tabs = [
@@ -95,7 +92,7 @@ const SettingFill = () => {
         <header className="mb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9290FF]">Workspace</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#E7E9EE] sm:text-3xl">Settings</h1>
-          <p className="mt-2 text-sm leading-6 text-[#8B93A7] sm:text-[15px]">Manage your profile and local vault data.</p>
+          <p className="mt-2 text-sm leading-6 text-[#8B93A7] sm:text-[15px]">Manage your profile and current-session vault.</p>
         </header>
 
         <div role="tablist" aria-label="Settings sections" className="flex gap-1 overflow-x-auto border-b border-[#252A37]">
@@ -245,8 +242,8 @@ const SettingFill = () => {
                     <ShieldCheck aria-hidden="true" size={18} />
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#E7E9EE]">Your local data</h3>
-                    <p className="mt-1 text-sm leading-5 text-[#8B93A7]">Snippets and profile details are stored in this browser. They aren’t synced to an account or another device.</p>
+                    <h3 className="text-sm font-semibold text-[#E7E9EE]">Session-only snippets</h3>
+                    <p className="mt-1 text-sm leading-5 text-[#8B93A7]">Snippets stay in memory for this session only. They are not saved in browser storage and are cleared when you reload or close the page. Backend sync will be added later.</p>
                   </div>
                 </div>
               </div>
@@ -258,8 +255,8 @@ const SettingFill = () => {
                       <AlertTriangle aria-hidden="true" size={18} />
                     </span>
                     <div>
-                      <h3 className="text-sm font-semibold text-[#F08C97]">Clear local vault</h3>
-                      <p className="mt-1 max-w-md text-sm leading-5 text-[#A4878B]">Permanently remove all snippets stored by DevVault in this browser. Your profile details will remain.</p>
+                      <h3 className="text-sm font-semibold text-[#F08C97]">Clear session vault</h3>
+                      <p className="mt-1 max-w-md text-sm leading-5 text-[#A4878B]">Remove all snippets from the current session. Your profile details will remain.</p>
                     </div>
                   </div>
                   <button
@@ -268,7 +265,7 @@ const SettingFill = () => {
                     className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#8F3943] px-4 text-sm font-semibold text-[#F08C97] transition-colors hover:bg-[#352127] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E87582]"
                   >
                     <Trash2 aria-hidden="true" size={15} />
-                    Clear local vault
+                    Clear session vault
                   </button>
                 </div>
                 {error && <p role="alert" className="mt-4 text-sm text-[#F08C97]">{error}</p>}
@@ -292,9 +289,9 @@ const SettingFill = () => {
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#352127] text-[#E38A91]">
               <Trash2 aria-hidden="true" size={19} />
             </div>
-            <h2 id="clear-vault-title" className="mt-4 text-base font-semibold text-[#E7E9EE]">Clear all snippets from this browser?</h2>
+            <h2 id="clear-vault-title" className="mt-4 text-base font-semibold text-[#E7E9EE]">Clear all snippets from this session?</h2>
             <p id="clear-vault-description" className="mt-2 text-sm leading-5 text-[#8B93A7]">
-              This permanently removes every saved snippet from this device. Your profile details will not be deleted, and this action cannot be undone.
+              This removes every snippet currently held in memory. Your profile details will not be deleted.
             </p>
             {error && <p role="alert" className="mt-3 text-sm text-[#F08C97]">{error}</p>}
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

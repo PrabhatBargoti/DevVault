@@ -1,6 +1,6 @@
 # DevVault Backend
 
-DevVault's backend is a Node.js and Express API that stores snippets in Supabase Postgres. The API requires a valid Supabase access token, scopes every database operation to the authenticated user, validates input, and applies request limits. It is a separate package from `Client/`; the frontend currently uses browser storage and does not call these endpoints.
+DevVault's backend is a Node.js and Express API that stores snippets in Supabase Postgres. The API requires a valid Supabase access token, scopes every database operation to the authenticated user, validates input, and applies request limits. It is a separate package from `Client/`; the frontend currently keeps snippets in memory for the active page session and does not call these endpoints.
 
 ## Contents
 

@@ -16,7 +16,7 @@ const PrivacyPolicyPage = () => (
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Information you provide</h2>
       <ul className="mt-3 list-disc space-y-2 pl-6">
-        <li>Snippets and profile details you enter are stored in browser local storage on the device and browser you use.</li>
+        <li>Snippets you enter are held in application memory for the active page session and are cleared when you reload or close the page. Profile details are stored in browser local storage.</li>
         <li>For email registration, Supabase Auth receives your email, password credential, and the name you provide. DevVault does not receive or store your plaintext password.</li>
         <li>If you choose Google or GitHub sign-in, the selected provider and Supabase process the account information needed to authenticate you.</li>
       </ul>
@@ -25,7 +25,7 @@ const PrivacyPolicyPage = () => (
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">How information is used</h2>
       <p className="mt-3">
-        Information is used to provide the features you request, maintain your local vault and profile, authenticate
+        Information is used to provide the features you request, maintain your session-only snippets and profile, authenticate
         accounts, and support account recovery. The client does not include an analytics package in its current
         implementation.
       </p>
@@ -34,8 +34,9 @@ const PrivacyPolicyPage = () => (
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Storage and service providers</h2>
       <p className="mt-3">
-        Local vault and profile data remain in your browser until you remove them, clear browser data, or use the
-        available clear-vault control (which does not remove profile settings). Authentication data is processed by
+        Snippets are held in memory only while the page is open and can be removed using the clear-session-vault
+        control. Profile data remains in browser local storage until you remove it or clear browser data.
+        Authentication data is processed by
         Supabase and, when selected, Google or GitHub. Those providers handle information under their own policies.
         DevVault does not control their services or retention practices.
       </p>
@@ -44,10 +45,10 @@ const PrivacyPolicyPage = () => (
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Your choices and data safety</h2>
       <p className="mt-3">
-        You can edit or clear local data through the app or your browser settings. Local storage is not encrypted by
-        DevVault and is not appropriate for passwords, access tokens, or other secrets. Do not save sensitive
-        information in snippets. Account deletion and a self-service export of authentication data are not currently
-        provided in the client.
+        You can clear session snippets through the app and remove profile data through your browser settings. Profile
+        local storage is not encrypted by DevVault and is not appropriate for passwords, access tokens, or other
+        secrets. Do not save sensitive information in snippets. Account deletion and a self-service export of
+        authentication data are not currently provided in the client.
       </p>
     </section>
 

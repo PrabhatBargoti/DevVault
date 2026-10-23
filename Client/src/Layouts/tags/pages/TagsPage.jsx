@@ -1,13 +1,12 @@
-import { useState } from 'react'
 import SEO from '../../../components/SEO'
 import Sidebar from '../../../components/Sidebar'
 import DashboardHeader from '../../../components/DashboardHeader'
 import TagEmpty from '../components/TagEmpty'
 import TagFill from '../components/TagFill'
-import { getSavedSnippets } from '../../snippets/lib/snippetStorage'
+import { useSnippets } from '../../../lib/snippetStore'
 
 const Tags = () => {
-  const [snippets] = useState(getSavedSnippets)
+  const snippets = useSnippets()
   const hasTags = snippets.some((snippet) => snippet.tags?.some((tag) => tag.trim()))
 
   return (

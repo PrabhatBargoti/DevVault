@@ -1,12 +1,11 @@
-import { useState } from 'react'
 import SEO from '../../../components/SEO'
 import Sidebar from '../../../components/Sidebar'
 import DashboardHeader from '../../../components/DashboardHeader'
 import Categoriefill from '../components/Categoriefill'
-import { getSavedSnippets } from '../../snippets/lib/snippetStorage'
+import { useSnippets } from '../../../lib/snippetStore'
 
 const Categorie = () => {
-  const [snippets] = useState(getSavedSnippets)
+  const snippets = useSnippets()
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row md:pl-64">
