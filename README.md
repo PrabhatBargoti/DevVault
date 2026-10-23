@@ -1,13 +1,13 @@
 # DevVault
 
-DevVault is a dark-themed developer workspace and knowledge vault designed for saving, organizing, browsing, and revisiting code snippets. The project currently centers around a React single-page frontend that provides a polished landing experience and a workspace dashboard for snippet management, while the backend package remains a lightweight Express bootstrapping layer with Supabase placeholders rather than a live production API.
+DevVault is a dark-themed developer workspace and knowledge vault designed for saving, organizing, browsing, and revisiting code snippets. The repository contains a React single-page frontend and an Express API backed by Supabase. The frontend's snippet workflow currently uses browser `localStorage`; it has not yet been connected to the backend API.
 
 This repository is intentionally split into two main areas:
 
 - `Client/` — the browser application built with React, Vite, and Tailwind
-- `Server/` — the server-side scaffold for future API or database integration
+- `Server/` — the Express API, Supabase integration, and database migration
 
-The goal of the current implementation is a self-contained, browser-based prototype that demonstrates product UX and workflow without depending on a live backend service.
+The frontend demonstrates the product UX and workflow as a browser-based prototype. The backend API is implemented separately and requires Supabase configuration; the frontend and API are not yet integrated.
 
 ## Project status
 
@@ -22,11 +22,10 @@ The app is operational as a frontend prototype with the following implemented be
 
 The following are still placeholders or intentionally unimplemented:
 
-- Real authentication and authorization
-- Backend API endpoints
-- Supabase integration and database persistence
+- Frontend authentication UI is not connected to real authentication
+- Frontend snippet workflows are not connected to the backend API or Supabase persistence
 - User accounts and synchronization across devices
-- Full production deployment pipeline and tests
+- Production deployment pipeline and distributed rate-limit storage
 
 ## Repository layout
 
@@ -40,11 +39,12 @@ D:\DevVault
 │   ├── vercel.json          # SPA rewrite config for hosting
 │   ├── FRONTEND.md          # Detailed frontend engineering documentation
 │   └── ...
-├── Server/                  # Express server scaffold
-│   ├── src/                 # Server source files
-│   ├── package.json         # Server package config
-│   └── server.js            # Express bootstrap entry point
-├── .env.example             # Supabase environment variable placeholders
+├── Server/                  # Express and Supabase API
+│   ├── src/                 # API routes, middleware, services, and utilities
+│   ├── supabase/migrations/ # Database schema and RLS policies
+│   ├── Backend.md           # Detailed backend documentation
+│   ├── package.json         # Server package config and scripts
+│   └── server.js            # Express entry point
 ├── README.md                # Repository overview (this file)
 └── .gitignore
 ```
@@ -64,6 +64,7 @@ D:\DevVault
 ### Backend
 
 - Express 5
+- express-rate-limit
 - dotenv
 - @supabase/supabase-js
 
@@ -108,20 +109,20 @@ This provides a simple demo persistence layer, but it is not encrypted, user-sco
 
 ## Server overview
 
-The `Server/` package is currently a minimal scaffold. It contains an `Express` app export but no real application routes, no authorization logic, and no database integration. The Supabase configuration files are placeholders intended to support future server-side storage or auth work.
-
-The current configuration suggests the project may evolve toward a backend storage architecture but does not yet implement it.
+The `Server/` package implements authenticated snippet CRUD endpoints, input validation, pagination, JSON payload limits, and IP/account rate limiting. Supabase Auth verifies bearer access tokens, and snippet data is stored in the `public.snippets` table created by the server migration. The frontend is not yet wired to these endpoints.
 
 ## Environment and configuration
 
-The root `.env.example` contains placeholder values for a future Supabase setup:
+Copy `Server/.env.example` to `Server/.env` and configure the backend:
 
 ```env
-SUPABASE_URL = https://your-supabase-url.supabase.co
-SUPABASE_PUBLISHABLE_KEY = your-supabase-publishable-key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
+SUPABASE_SECRET_KEY=your-supabase-secret-key
+PORT=3000
 ```
 
-At present, the frontend does not consume any `VITE_*` variables, and the browser app does not depend on server environment values to run locally.
+The Supabase secret key is server-only; do not expose it to frontend code or commit it. The frontend currently uses browser storage and does not require backend environment values to run.
 
 ## Quick start
 
@@ -154,6 +155,27 @@ cd Client
 npm run lint
 ```
 
+### Backend
+
+Configure `Server/.env` using `Server/.env.example`, apply the Supabase migration, and start the API:
+
+```bash
+cd Server
+npm install
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+npm start
+```
+
+Run the backend tests with:
+
+```bash
+cd Server
+npm test
+```
+
+See the [backend guide](Server/Backend.md) for local Supabase setup, configuration details, API endpoints, request examples, validation rules, and deployment notes.
+
 ## Development notes
 
 ### Architectural approach
@@ -177,27 +199,27 @@ The app uses React local state and route-level composition instead of a centrali
 
 ### Security posture
 
-The current frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Browser storage is not secure storage, and the app has no backend authorization layer today. Any real app features that handle authentication or secrets should be implemented with proper backend validation and access controls.
+The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Browser `localStorage` is not secure storage, and frontend authentication is not connected to Supabase. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private.
 
 ## Documentation
 
 For the detailed implementation and engineering notes, see:
 
-- [Client/FRONTEND.md](Client/FRONTEND.md)
+- [Frontend guide](Client/FRONTEND.md)
+- [Backend guide](Server/Backend.md)
 
-The detailed frontend guide covers architecture, route map, persistence behavior, styling, verification commands, limitations, and future development guidance.
+The frontend guide covers architecture, routes, local persistence, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
 
 ## Recommended next steps
 
-Depending on the direction of the project, the next industrialization steps would likely include:
+Potential next steps include:
 
-1. Establishing a real backend API and authentication flow
-2. Replacing localStorage with secure server-backed persistence
-3. Adding database models and service layer integration
-4. Implementing automated tests and type safety
-5. Defining authorization rules and protected routes
-6. Hardening deployment, environment, and production configuration
+1. Connect frontend sign-in and snippet workflows to Supabase Auth and the backend API
+2. Migrate existing browser snippets to authenticated server-side storage
+3. Add end-to-end tests for the frontend/API integration
+4. Configure a shared rate-limit store and production deployment settings
+5. Add protected frontend routes and user-facing API error handling
 
 ## Summary
 
-DevVault is best understood as a strong frontend prototype for a developer knowledge vault product. It has a polished user experience, a working local snippet workflow, and a clear feature layout, but it still requires real backend and security work before being considered a production-ready application.
+DevVault includes a polished frontend prototype and an authenticated, rate-limited snippet API. The frontend still stores snippets locally and is not connected to the API, so authentication and synchronized persistence remain future integration work before the full product is production-ready.
