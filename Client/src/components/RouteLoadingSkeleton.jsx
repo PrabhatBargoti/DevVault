@@ -120,12 +120,21 @@ const LandingSkeleton = () => (
   </main>
 )
 
+const LegalSkeleton = () => (
+  <main aria-hidden="true" className="min-h-dvh bg-[#0B0D12] px-5 py-12">
+    <SkeletonBlock className="mx-auto h-10 w-full max-w-4xl" />
+    <SkeletonBlock className="mx-auto mt-10 h-64 w-full max-w-4xl rounded-2xl" />
+    <SkeletonBlock className="mx-auto mt-5 h-40 w-full max-w-4xl rounded-2xl" />
+  </main>
+)
+
 const RouteLoadingSkeleton = () => {
   const { pathname } = useLocation()
   let skeleton
 
   if (pathname === '/') skeleton = <LandingSkeleton />
-  else if (['/Login', '/Signup', '/forgot-password'].includes(pathname)) skeleton = <AuthSkeleton />
+  else if (['/Login', '/Signup', '/forgot-password', '/change-password'].includes(pathname)) skeleton = <AuthSkeleton />
+  else if (['/privacy-policy', '/terms'].includes(pathname)) skeleton = <LegalSkeleton />
   else if (pathname === '/Setting') skeleton = <WorkspaceSkeleton type="settings" />
   else if (pathname === '/Tags') skeleton = <WorkspaceSkeleton type="tags" />
   else if (pathname === '/Categorie') skeleton = <WorkspaceSkeleton type="categories" />

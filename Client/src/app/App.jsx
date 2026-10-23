@@ -12,6 +12,9 @@ const NotFoundPage = lazy(() => import('../Layouts/not-found/NotFoundPage'))
 const SettingsPage = lazy(() => import('../Layouts/settings/pages/SettingsPage'))
 const LandingPage = lazy(() => import('../Layouts/landing/pages/LandingPage'))
 const ForgotPasswordPage = lazy(() => import('../Layouts/auth/ForgotPasswordPage'))
+const ChangePasswordPage = lazy(() => import('../Layouts/auth/ChangePasswordPage'))
+const PrivacyPolicyPage = lazy(() => import('../Layouts/legal/PrivacyPolicyPage'))
+const TermsPage = lazy(() => import('../Layouts/legal/TermsPage'))
 const DashboardPage = lazy(() => import('../Layouts/dashboard/pages/DashboardPage'))
 const SnippetsPage = lazy(() => import('../Layouts/snippets/pages/SnippetsPage'))
 const SnippetDetailPage = lazy(() => import('../Layouts/snippets/pages/SnippetDetailPage'))
@@ -68,6 +71,9 @@ const App = () => {
               <Route path="/Categorie" element={<CategoriesPage />} />
               <Route path="/Setting" element={<SettingsPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/change-password" element={<ChangePasswordPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>

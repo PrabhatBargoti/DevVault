@@ -227,10 +227,16 @@ const SettingFill = () => {
                   </span>
                   <div>
                     <h3 className="text-sm font-semibold text-[#E7E9EE]">Password and sessions</h3>
-                    <p className="mt-1 max-w-md text-sm leading-5 text-[#8B93A7]">Sign-in, password changes, and sign-out aren’t available because this app doesn’t have connected account services yet.</p>
+                    <p className="mt-1 max-w-md text-sm leading-5 text-[#8B93A7]">Sign-in uses Supabase Auth. You can request an email password reset; signing out from the workspace is not available yet.</p>
                   </div>
                 </div>
-                <span className="inline-flex min-h-8 shrink-0 items-center self-start rounded-full border border-[#303545] px-3 text-xs font-medium text-[#8B93A7] sm:self-center">Not connected</span>
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="inline-flex min-h-10 shrink-0 items-center justify-center self-start rounded-lg border border-[#303545] px-3 text-sm font-medium text-[#D3D8E4] transition-colors hover:bg-[#1C2029] sm:self-center"
+                >
+                  Reset password
+                </button>
               </div>
 
               <div className="rounded-xl border border-[#252A37] bg-[#12151C] p-4 sm:p-5">

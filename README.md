@@ -7,14 +7,17 @@ This repository is intentionally split into two main areas:
 - `Client/` — the browser application built with React, Vite, and Tailwind
 - `Server/` — the Express API, Supabase integration, and database migration
 
-The frontend demonstrates the product UX and workflow as a browser-based prototype. The backend API is implemented separately and requires Supabase configuration; the frontend and API are not yet integrated.
+The frontend provides the product UX and workflow, with account authentication through Supabase Auth. The snippet workflow still uses browser storage and is not yet connected to the separately implemented backend API.
 
 ## Project status
 
 The app is operational as a frontend prototype with the following implemented behaviors:
 
 - Landing page for product marketing and calls to action
-- Authentication UI screens for login, signup, and forgot-password flow
+- Supabase email/password and Google/GitHub authentication screens
+- Required terms acceptance before signup through email or social providers
+- Password recovery email and password-change flow
+- Privacy Policy and Terms and Conditions pages linked from the landing footer
 - Dashboard workspace with snippet overview, stats, and empty states
 - Snippet create, search, filter, display, and delete functionality
 - Browser-based persistence using `localStorage`
@@ -22,8 +25,8 @@ The app is operational as a frontend prototype with the following implemented be
 
 The following are still placeholders or intentionally unimplemented:
 
-- Frontend authentication UI is not connected to real authentication
 - Frontend snippet workflows are not connected to the backend API or Supabase persistence
+- Email confirmation, delivery, and OAuth require Supabase dashboard configuration
 - User accounts and synchronization across devices
 - Production deployment pipeline and distributed rate-limit storage
 
@@ -37,6 +40,7 @@ D:\DevVault
 │   ├── package.json         # Frontend project config and scripts
 │   ├── vite.config.js       # Vite build tooling config
 │   ├── vercel.json          # SPA rewrite config for hosting
+│   ├── .env.example         # Public Supabase Auth client configuration template
 │   ├── frontend.md          # Detailed frontend engineering documentation
 │   └── ...
 ├── Server/                  # Express and Supabase API
@@ -60,6 +64,7 @@ D:\DevVault
 - Tailwind CSS
 - lucide-react for icons
 - react-helmet-async for document metadata
+- Supabase JS for client authentication
 - Oxlint for JS linting
 
 ### Backend
@@ -77,8 +82,11 @@ The frontend app lives entirely under `Client/` and is designed as a Vite SPA wi
 
 - `/` — marketing landing page
 - `/Login` — login screen
-- `/Signup` — signup screen
-- `/forgot-password` — reset flow placeholder page
+- `/Signup` — signup with required terms and privacy acceptance
+- `/forgot-password` — sends a password recovery email
+- `/change-password` — changes password from a valid recovery session
+- `/privacy-policy` — privacy notice
+- `/terms` — Terms and Conditions
 - `/Home` — dashboard workspace
 - `/Snippet` — snippet workspace and creation tool
 - `/Tags` — browse and search snippet tags
@@ -123,7 +131,7 @@ SUPABASE_SECRET_KEY=your-supabase-secret-key
 PORT=3000
 ```
 
-The Supabase secret key is server-only; do not expose it to frontend code or commit it. The frontend currently uses browser storage and does not require backend environment values to run.
+The Supabase secret key is server-only; do not expose it to frontend code or commit it. For client authentication, copy `Client/.env.example` to `Client/.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. These values are public; never put the server secret key in a `VITE_*` variable. Enable Email, Google, and GitHub providers and allow the local and deployed app redirect URLs in Supabase Auth settings.
 
 ## Quick start
 
@@ -132,6 +140,7 @@ The Supabase secret key is server-only; do not expose it to frontend code or com
 ```bash
 cd Client
 npm install
+cp .env.example .env
 npm run dev
 ```
 
@@ -196,11 +205,11 @@ Reusable UI lives under `Client/src/components/`; client-wide hooks, storage hel
 
 ### Current implementation pattern
 
-The app uses React local state and route-level composition instead of a centralized application store. This keeps the prototype lightweight and easy to follow, but it also means there is no built-in async API layer, auth context, or global state management system.
+The app uses React local state and route-level composition instead of a centralized application store. Supabase Auth handles account workflows, but there is no global auth context or protected route. Snippets and profile settings remain in browser local storage.
 
 ### Security posture
 
-The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Browser `localStorage` is not secure storage, and frontend authentication is not connected to Supabase. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private.
+The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Browser `localStorage` is not secure storage; authentication is separate from snippet storage, and routes are not protected. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
 
 ## Documentation
 
@@ -210,18 +219,18 @@ For the detailed implementation and engineering notes, see:
 - [Backend guide](Server/Backend.md)
 - [Contribution guide](CONTRIBUTING.md)
 
-The frontend guide covers architecture, routes, local persistence, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
+The frontend guide covers architecture, routes, Supabase Auth setup, local persistence, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
 
 ## Recommended next steps
 
 Potential next steps include:
 
-1. Connect frontend sign-in and snippet workflows to Supabase Auth and the backend API
-2. Migrate existing browser snippets to authenticated server-side storage
+1. Connect snippet workflows to the backend API and migrate existing browser snippets to authenticated storage
+2. Add protected frontend routes and user-facing API error handling
 3. Add end-to-end tests for the frontend/API integration
 4. Configure a shared rate-limit store and production deployment settings
-5. Add protected frontend routes and user-facing API error handling
+5. Review the legal pages and establish contact and consent-retention processes before production
 
 ## Summary
 
-DevVault includes a polished frontend prototype and an authenticated, rate-limited snippet API. The frontend still stores snippets locally and is not connected to the API, so authentication and synchronized persistence remain future integration work before the full product is production-ready.
+DevVault includes a polished frontend, Supabase Auth flows, and an authenticated, rate-limited snippet API. The frontend still stores snippets locally and is not connected to the API, so synchronized persistence and protected routes remain future integration work before the full product is production-ready.
