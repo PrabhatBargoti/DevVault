@@ -143,7 +143,7 @@ const RouteLoadingSkeleton = () => {
   else skeleton = <WorkspaceSkeleton type="snippets" />
 
   return (
-    <div role="status" aria-label="Loading page">
+    <div role="status" aria-label="Loading page" className="min-h-dvh w-full overflow-x-clip bg-[#0B0D12]">
       {skeleton}
     </div>
   )

@@ -19,6 +19,31 @@ const DashboardPage = lazy(() => import('../Layouts/dashboard/pages/DashboardPag
 const SnippetsPage = lazy(() => import('../Layouts/snippets/pages/SnippetsPage'))
 const SnippetDetailPage = lazy(() => import('../Layouts/snippets/pages/SnippetDetailPage'))
 
+const preloadRouteModules = () => {
+  const routes = [
+    ['signup', () => import('../Layouts/auth/SignUpPage')],
+    ['login', () => import('../Layouts/auth/LoginPage')],
+    ['tags', () => import('../Layouts/tags/pages/TagsPage')],
+    ['categories', () => import('../Layouts/categories/pages/CategoriesPage')],
+    ['not-found', () => import('../Layouts/not-found/NotFoundPage')],
+    ['settings', () => import('../Layouts/settings/pages/SettingsPage')],
+    ['landing', () => import('../Layouts/landing/pages/LandingPage')],
+    ['forgot-password', () => import('../Layouts/auth/ForgotPasswordPage')],
+    ['change-password', () => import('../Layouts/auth/ChangePasswordPage')],
+    ['privacy-policy', () => import('../Layouts/legal/PrivacyPolicyPage')],
+    ['terms', () => import('../Layouts/legal/TermsPage')],
+    ['dashboard', () => import('../Layouts/dashboard/pages/DashboardPage')],
+    ['snippets', () => import('../Layouts/snippets/pages/SnippetsPage')],
+    ['snippet-detail', () => import('../Layouts/snippets/pages/SnippetDetailPage')],
+  ]
+
+  for (const [route, preload] of routes) {
+    preload().catch((error) => {
+      console.error(`Failed to preload the ${route} route:`, error)
+    })
+  }
+}
+
 class AppErrorBoundary extends Component {
   state = { hasError: false }
 
@@ -45,9 +70,20 @@ const App = () => {
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)
     const handleOffline = () => setIsOnline(false)
+    const connection = window.navigator.connection
+    const shouldSkipPrefetch = connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType)
 
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
+
+    if (!shouldSkipPrefetch) {
+      const timeoutId = window.setTimeout(preloadRouteModules, 1200)
+      return () => {
+        window.clearTimeout(timeoutId)
+        window.removeEventListener('online', handleOnline)
+        window.removeEventListener('offline', handleOffline)
+      }
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline)

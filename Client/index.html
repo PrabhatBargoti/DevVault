@@ -23,8 +23,22 @@
   <meta name="twitter:image" content="/og-image.png" />
   <meta name="theme-color" content="#0B0B0F" />
   <style>
+    html,
+    body,
+    #root {
+      min-height: 100%;
+      margin: 0;
+      background: #0b0d12;
+    }
+
+    body {
+      min-width: 320px;
+    }
+
     .initial-loading {
+      box-sizing: border-box;
       min-height: 100vh;
+      min-height: 100dvh;
       padding: 24px;
       background: #0b0d12;
       color: #e7e9ee;

@@ -137,7 +137,7 @@ BrowserRouter
         └── App
 ```
 
-`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` lazy-loads route pages and wraps them in a shared Suspense boundary; `RouteLoadingSkeleton` renders a responsive page-shaped fallback while a route chunk is loading. `index.html` also includes a small critical-CSS placeholder so the initial document is not blank while the JavaScript bundle downloads. The app shows the offline screen from browser connection events and catches React render errors with an error boundary. `src/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
+`BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` lazy-loads route pages and wraps them in a shared Suspense boundary; `RouteLoadingSkeleton` renders a responsive page-shaped fallback while a route chunk is loading. After the initial route has had time to render, the app preloads route chunks in the background on ordinary connections so subsequent navigation is faster; it skips this work when the browser reports data saver or a 2G connection. `index.html` includes a full-viewport dark critical loading background to avoid a bright flash around the initial skeleton before the main stylesheet loads. The app shows the offline screen from browser connection events and catches React render errors with an error boundary. `src/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
 
 The normal data flow is:
 
