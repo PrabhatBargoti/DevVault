@@ -1,20 +1,20 @@
 import { Component, lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import RouteLoadingSkeleton from '../shared/components/RouteLoadingSkeleton'
-import OfflinePage from '../shared/components/OfflinePage'
-import ErrorPage from '../shared/components/ErrorPage'
+import RouteLoadingSkeleton from '../components/RouteLoadingSkeleton'
+import OfflinePage from '../components/OfflinePage'
+import ErrorPage from '../components/ErrorPage'
 
-const SignUpPage = lazy(() => import('../features/auth/pages/SignUpPage'))
-const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
-const TagsPage = lazy(() => import('../features/tags/pages/TagsPage'))
-const CategoriesPage = lazy(() => import('../features/categories/pages/CategoriesPage'))
-const NotFoundPage = lazy(() => import('../features/not-found/NotFoundPage'))
-const SettingsPage = lazy(() => import('../features/settings/pages/SettingsPage'))
-const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'))
-const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPasswordPage'))
-const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'))
-const SnippetsPage = lazy(() => import('../features/snippets/pages/SnippetsPage'))
-const SnippetDetailPage = lazy(() => import('../features/snippets/pages/SnippetDetailPage'))
+const SignUpPage = lazy(() => import('../Layouts/auth/SignUpPage'))
+const LoginPage = lazy(() => import('../Layouts/auth/LoginPage'))
+const TagsPage = lazy(() => import('../Layouts/tags/pages/TagsPage'))
+const CategoriesPage = lazy(() => import('../Layouts/categories/pages/CategoriesPage'))
+const NotFoundPage = lazy(() => import('../Layouts/not-found/NotFoundPage'))
+const SettingsPage = lazy(() => import('../Layouts/settings/pages/SettingsPage'))
+const LandingPage = lazy(() => import('../Layouts/landing/pages/LandingPage'))
+const ForgotPasswordPage = lazy(() => import('../Layouts/auth/ForgotPasswordPage'))
+const DashboardPage = lazy(() => import('../Layouts/dashboard/pages/DashboardPage'))
+const SnippetsPage = lazy(() => import('../Layouts/snippets/pages/SnippetsPage'))
+const SnippetDetailPage = lazy(() => import('../Layouts/snippets/pages/SnippetDetailPage'))
 
 class AppErrorBoundary extends Component {
   state = { hasError: false }
