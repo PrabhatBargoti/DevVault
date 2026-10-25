@@ -5,7 +5,7 @@ const {
   validateCreateSnippet,
   validateSnippetId,
   validateSnippetUpdate,
-} = require('../src/utils/snippetValidation')
+} = require('../src/validators/snippets')
 
 test('create validation trims text and applies optional defaults', () => {
   assert.deepEqual(

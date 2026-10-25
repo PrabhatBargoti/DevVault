@@ -1,4 +1,4 @@
-const { HttpError } = require('./httpError')
+const { HttpError } = require('../utils/httpError')
 
 const FIELD_LIMITS = {
   title: 150,

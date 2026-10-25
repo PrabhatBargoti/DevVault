@@ -1,2 +1,4 @@
-Server/.env
+.env
+.temp/
+.branches/
 Server/node_modules/
