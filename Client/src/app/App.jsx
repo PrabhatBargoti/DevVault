@@ -99,7 +99,7 @@ const WorkspaceData = () => {
     }
   }, [authLoading, session?.user?.id, attempt])
 
-  if (authLoading || loadState.loading || loadedUserId !== session?.user?.id) return <RouteLoadingSkeleton />
+  if (authLoading || loadState.loading) return <RouteLoadingSkeleton />
   if (loadState.error) {
     return (
       <ErrorPage
@@ -108,6 +108,7 @@ const WorkspaceData = () => {
       />
     )
   }
+  if (loadedUserId !== session?.user?.id) return <RouteLoadingSkeleton />
   return <Outlet />
 }
 
@@ -164,4 +165,12 @@ const App = () => {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
-        </d
+        </div>
+      ) : (
+        <OfflinePage onRetry={() => setIsOnline(window.navigator.onLine)} />
+      )}
+    </AppErrorBoundary>
+  )
+}
+
+export default App
