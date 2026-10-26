@@ -6,11 +6,13 @@ import SnippetForm from '../components/SnippetForm'
 import SnippetEmpty from '../components/snippetEmpty'
 import Snippet from '../components/Snippet'
 import DashboardHeader from '../../../components/DashboardHeader'
-import { setSnippets, useSnippets } from '../../../lib/snippetStore'
+import { setSnippetError, setSnippets, useSnippetError, useSnippets } from '../../../lib/snippetStore'
+import { createSnippet as createSnippetRequest, deleteSnippet as deleteSnippetRequest, updateSnippet as updateSnippetRequest } from '../../../lib/snippetApi'
 
 const Snippets = ({ user }) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const snippets = useSnippets()
+  const snippetError = useSnippetError()
   const searchQuery = searchParams.get('search') || ''
   const categoryFilter = searchParams.get('category') || ''
   const tagFilter = searchParams.get('tag') || ''
@@ -37,11 +39,9 @@ const Snippets = ({ user }) => {
     })
   }
 
-  const createSnippet = (snippet) => {
-    setSnippets((currentSnippets) => [
-      { ...snippet, id: `${Date.now()}`, createdAt: new Date().toISOString() },
-      ...currentSnippets,
-    ])
+  const createSnippet = async (snippet) => {
+    const savedSnippet = await createSnippetRequest(snippet)
+    setSnippets((currentSnippets) => [savedSnippet, ...currentSnippets])
     closeCreate()
   }
 
@@ -50,15 +50,22 @@ const Snippets = ({ user }) => {
     setIsCreateOpen(false)
   }
 
-  const updateSnippet = (updates) => {
+  const updateSnippet = async (updates) => {
+    const savedSnippet = await updateSnippetRequest(editingSnippet.id, updates)
     setSnippets((currentSnippets) => currentSnippets.map((snippet) => (
-      snippet.id === editingSnippet.id ? { ...snippet, ...updates, updatedAt: new Date().toISOString() } : snippet
+      snippet.id === editingSnippet.id ? savedSnippet : snippet
     )))
     closeCreate()
   }
 
-  const deleteSnippet = (id) => {
-    setSnippets((currentSnippets) => currentSnippets.filter((snippet) => snippet.id !== id))
+  const deleteSnippet = async (id) => {
+    setSnippetError('')
+    try {
+      await deleteSnippetRequest(id)
+      setSnippets((currentSnippets) => currentSnippets.filter((snippet) => snippet.id !== id))
+    } catch (error) {
+      setSnippetError(error.message || 'Could not delete this snippet. Please try again.')
+    }
   }
 
   return (
@@ -71,6 +78,7 @@ const Snippets = ({ user }) => {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader user={user} />
+        {snippetError && <p role="alert" className="mx-5 mt-4 rounded-lg border border-[#61313A] bg-[#29191E] px-3 py-2.5 text-sm text-[#F08C97] sm:mx-6 lg:mx-12">{snippetError}</p>}
         {isCreateOpen || editingSnippet ? (
           <SnippetForm
             key={editingSnippet?.id || 'new'}

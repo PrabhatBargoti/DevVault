@@ -26,7 +26,7 @@ This guide describes the implemented React application in `Client/`. It is based
 
 DevVault is a dark-themed developer knowledge vault. The frontend presents a marketing landing page and a responsive workspace for saving, editing, revisiting, searching, filtering, and deleting code snippets, and organizing them by tag and category. It also contains route-level UI for authentication and settings.
 
-The client is a standalone Vite single-page application. It owns browser navigation, presentation, SEO metadata, and client state. Login, signup, and password screens are placeholders; authentication is not connected to the server. Snippets live in memory only for the current page session and are cleared on reload; they are not written to browser storage. The client does not currently send snippet requests to the `Server/` package. Profile settings remain in browser storage.
+The client is a Vite single-page application. It owns browser navigation, presentation, and SEO metadata. Supabase Auth handles client sign-in; authenticated snippet requests go through the Express API in `Server/`. Snippets are loaded from the account-scoped API and remain available across reloads. Profile settings remain in browser storage.
 
 ## Stack
 
@@ -38,13 +38,14 @@ The client is a standalone Vite single-page application. It owns browser navigat
 | Styling | Tailwind CSS `^4.3.3` through `@tailwindcss/vite` |
 | Icons | `lucide-react` / `lucide` `^1.46.0` |
 | Metadata | `react-helmet-async` `^3.0.0` |
-| Authentication | Not integrated; auth routes are UI placeholders |
+| Authentication | `@supabase/supabase-js` |
+| Backend API | Native `fetch` with Supabase bearer tokens |
 | Linting | Oxlint `^1.79.0` with React rules |
 | Language | JavaScript and JSX, native ES modules |
 | State | In-memory snippet store and browser localStorage for profile settings |
 | Tests | No client test framework configured |
 
-There is no TypeScript compiler, schema validator, form library, Redux-like store, React Query client, or frontend API client configured.
+There is no TypeScript compiler, schema validator, form library, Redux-like store, or React Query client configured.
 
 ## Repository boundaries
 
@@ -52,6 +53,7 @@ There is no TypeScript compiler, schema validator, form library, Redux-like stor
 D:\DevVault
 ├── Client/       React/Vite browser application
 ├── Server/       Express API and Supabase integration
+├── Client/.env.example  Client API and Supabase configuration template
 ├── Server/.env.example  Server configuration template
 └── README.md     Repository overview
 ```
@@ -60,15 +62,21 @@ Keep browser code and public assets in `Client/`. The server is a separate packa
 
 ## Setup
 
-Use a current Node.js LTS release and npm. From the repository root:
+Use a current Node.js LTS release and npm. Configure both packages, then start them in separate terminals:
+
+```bash
+cd Server
+npm ci
+npm start
+```
 
 ```bash
 cd Client
-npm install
+npm ci
 npm run dev
 ```
 
-Vite normally serves the app at `http://localhost:5173`. Build and preview a production bundle with:
+Vite normally serves the app at `http://localhost:5173`; the API listens on `http://localhost:3000`. Build and preview a production bundle with:
 
 ```bash
 cd Client
@@ -78,11 +86,11 @@ npm run preview
 
 On Windows systems where PowerShell blocks `npm.ps1`, use `npm.cmd run dev`, `npm.cmd run build`, or `npm.cmd run lint`.
 
-The client requires no Supabase configuration. Account creation, login, OAuth, and password recovery are not implemented in the client; the server is a separate package with a `start` script and `Server/server.js` entry point.
+Copy `Client/.env.example` to `Client/.env.local` and set the Supabase project URL and publishable key. For local use, copy `Server/.env.example` to `Server/.env` and add the Supabase URL, publishable key, and server-only secret key. The frontend uses only the publishable key; never put the server secret key in a `VITE_*` variable.
 
 ## Environment
 
-The client has no environment variables for Supabase. Supabase configuration belongs to `Server/.env`; never expose server credentials in client code or `VITE_*` variables.
+`VITE_API_BASE_URL` is the API base ending in `/api` (default `http://localhost:3000/api`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` configure browser authentication. These values are public; the Supabase secret/service-role key belongs only in `Server/.env`.
 
 ## Structure
 
@@ -123,43 +131,43 @@ Client/
 BrowserRouter
 └── StrictMode
     └── HelmetProvider
-        └── App
+            └── AuthProvider
+                └── App
 ```
 
 `BrowserRouter` enables client-side navigation. `HelmetProvider` enables page-level metadata. `src/app/App.jsx` lazy-loads route pages and wraps them in a shared Suspense boundary; `RouteLoadingSkeleton` renders a responsive page-shaped fallback while a route chunk is loading. After the initial route has had time to render, the app preloads route chunks in the background on ordinary connections so subsequent navigation is faster; it skips this work when the browser reports data saver or a 2G connection. `index.html` includes a full-viewport dark critical loading background to avoid a bright flash around the initial skeleton before the main stylesheet loads. The app shows the offline screen from browser connection events and catches React render errors with an error boundary. `src/components/SEO.jsx` sets title, description, robots, canonical, Open Graph, Twitter, image, and theme metadata.
 
-The normal data flow is:
+The data flow is:
 
 ```text
-route → layout page → domain components
-                    ↘ reusable components
-snippet form → in-memory snippet store ↔ dashboard/tags/categories
+Supabase Auth session → bearer-authenticated API request → Express → Supabase database
+snippet API → shared in-memory view store ↔ dashboard/tags/categories/detail
 ```
 
-Pages own state and callbacks; presentational components receive props. There is no global application store or provider for user/session data.
+Pages own UI state and callbacks; `AuthProvider` manages the Supabase session and the snippet store shares the current account's loaded records.
 
 ## Routes
 
 | URL | Component | Purpose | Access |
 | --- | --- | --- | --- |
 | `/` | `Layouts/landing/pages/LandingPage` | Marketing page | Public |
-| `/Signup` | `Layouts/auth/SignUpPage` | Signup placeholder with terms and privacy acceptance UI | Public |
-| `/Login` | `Layouts/auth/LoginPage` | Login placeholder | Public |
+| `/Signup` | `Layouts/auth/SignUpPage` | Create an account with Supabase Auth | Public |
+| `/Login` | `Layouts/auth/LoginPage` | Sign in with password or an enabled OAuth provider | Public |
 | `/forgot-password` | `Layouts/auth/ForgotPasswordPage` | Password-recovery placeholder | Public |
 | `/change-password` | `Layouts/auth/ChangePasswordPage` | Password-change placeholder | Public |
 | `/privacy-policy` | `Layouts/legal/PrivacyPolicyPage` | Privacy notice linked from the landing footer | Public |
 | `/terms` | `Layouts/legal/TermsPage` | Terms and Conditions linked from signup and the landing footer | Public |
-| `/Home` | `Layouts/dashboard/pages/DashboardPage` | Workspace dashboard | No guard |
-| `/Snippet` | `Layouts/snippets/pages/SnippetsPage` | Snippet management | No guard |
-| `/Snippet/:snippetId` | `Layouts/snippets/pages/SnippetDetailPage` | View or edit a saved snippet; deleted or unknown IDs show an unavailable state | No guard |
-| `/Snippet?create=1` | Same snippets page | Opens create form | No guard |
-| `/Snippet?search=<term>` | Same snippets page | Shows matching search results; supports category and tag query filters | No guard |
-| `/Tags` | `Layouts/tags/pages/TagsPage` | Search tags, view snippet counts, and open snippets for a tag; shows an empty state when no tags exist | No guard |
-| `/Categorie` | `Layouts/categories/pages/CategoriesPage` | Browse category cards and snippet counts; open snippets in a category | No guard |
-| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details and clear current-session snippets; appearance settings are not included | No guard |
+| `/Home` | `Layouts/dashboard/pages/DashboardPage` | Account's snippet dashboard | Authenticated |
+| `/Snippet` | `Layouts/snippets/pages/SnippetsPage` | Create, edit, and delete server-backed snippets | Authenticated |
+| `/Snippet/:snippetId` | `Layouts/snippets/pages/SnippetDetailPage` | View or edit an owned snippet; unavailable IDs show an error state | Authenticated |
+| `/Snippet?create=1` | Same snippets page | Opens create form | Authenticated |
+| `/Snippet?search=<term>` | Same snippets page | Shows matching results; supports category and tag query filters | Authenticated |
+| `/Tags` | `Layouts/tags/pages/TagsPage` | Browse tags and counts from the signed-in account | Authenticated |
+| `/Categorie` | `Layouts/categories/pages/CategoriesPage` | Browse categories and counts from the signed-in account | Authenticated |
+| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details, sign out, or delete account snippets | Authenticated |
 | `*` | `Layouts/not-found/NotFoundPage` | 404 fallback | Public |
 
-The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback; there are no redirects, nested route layouts, or protected-route wrappers. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
+The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback. Workspace routes use `RequireAuth` and load the signed-in user's snippets before rendering. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
 
 ## Features
 
@@ -169,27 +177,27 @@ The existing capitalization is intentional and must be preserved. Routes use laz
 
 ### Authentication
 
-The login, signup, forgot-password, and change-password routes are UI placeholders. They do not make authentication requests, create accounts, or change passwords. Signup retains its terms/privacy acceptance UI, but account creation and OAuth are unavailable until authentication is implemented through the server. The server-side Supabase integration remains isolated to `Server/`.
+Login and signup use Supabase Auth in the browser. Password login/signup and GitHub/Google OAuth (when enabled in the Supabase project) establish the session; the backend validates its access token on every snippet request. Password recovery and changing a password remain placeholders.
 
 ### Dashboard
 
-`DashboardPage` reads the in-memory snippets store and session-created marker, renders the shared `DashboardHeader` and `Sidebar`, and chooses `HomeEmpty` or `HomeFill`. Filled dashboards delegate statistics, quick actions, recent snippets, and insights to focused components. Deletion updates the shared in-memory store.
+`DashboardPage` reads the account's loaded snippets from the shared view store, renders the shared `DashboardHeader` and `Sidebar`, and chooses `HomeEmpty` or `HomeFill`. Filled dashboards delegate statistics, quick actions, recent snippets, and insights to focused components. Deletion is persisted through the API.
 
 ### Snippets
 
-`SnippetsPage` owns URL query state and uses the shared in-memory snippet store for create/edit/delete callbacks. `SnippetForm` collects a required, unique title and code plus description, language, category, and tags; title comparisons ignore leading/trailing whitespace and letter case. In edit mode it is prefilled with the saved snippet and excludes that record from duplicate-title checks. The language selector includes common languages, languages already used in the vault, and an option to enter a custom language; custom values are available in filters. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays a snippet available in the current session and provides an edit action; snippets are lost on reload. Empty-state components guide first creation.
+`SnippetsPage` owns URL query state and calls the API for create/edit/delete operations. `SnippetForm` collects a required, unique title and code plus description, language, category, and tags; title comparisons ignore leading/trailing whitespace and letter case. In edit mode it is prefilled with the saved snippet and excludes that record from duplicate-title checks. The language selector includes common languages, languages already used in the vault, and an option to enter a custom language; custom values are available in filters. `Snippet` derives category/language filter choices, applies search and URL filters, and displays a helpful no-results state with a clear-filters action. Each `SnippetCard` links to its detail and has an actions menu for editing or deleting. Delete uses an accessible confirmation dialog that can be dismissed with Cancel, Escape, or the backdrop. `SnippetDetailPage` displays and edits snippets loaded from the API.
 
 ### Tags and categories
 
-The tags page derives tags and per-tag snippet counts from the current in-memory snippet records, supports searching the tag list, and links each tag to matching snippet results. It shows an empty state when no session snippets have tags and a separate no-match state for an empty search. The categories page derives category cards and counts from current session snippets, adapts the grid to the viewport, and links each category to its filtered snippets. Both features use the same in-memory store.
+The tags page derives tags and per-tag snippet counts from the current account's loaded snippet records, supports searching the tag list, and links each tag to matching snippet results. The categories page derives category cards and counts from the same records, adapts the grid to the viewport, and links each category to its filtered snippets.
 
 ### Settings
 
-The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs, so the workspace header uses the saved name initials and uploaded image. Account management remains limited: authentication and password recovery are unavailable until connected through the server, and server account deletion is not implemented. Its Clear session vault action removes in-memory snippets for this session and leaves profile data intact. These controls do not create or delete a server account.
+The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs. Account settings show the signed-in email, support sign-out, and can permanently delete the account's snippets; server account deletion is not implemented.
 
 ## Persistence and data flow
 
-`src/lib/snippetStore.js` holds snippet records and the dashboard's created marker in application memory only. It uses React's external-store subscription API so the snippets, dashboard, tags, categories, and detail screens see consistent data while navigating. Reloading or closing the page clears the snippets. On startup the store also removes the old `devvault-snippets` and `devvault-has-created-snippet` localStorage entries left by the previous implementation.
+`src/lib/snippetStore.js` holds the currently loaded snippet records in application memory and uses React's external-store subscription API so the snippets, dashboard, tags, categories, and detail screens share a consistent view. `src/lib/snippetApi.js` handles authenticated requests to the API, and `src/lib/authContext.jsx` manages the Supabase session. Snippets are fetched when an authenticated workspace opens and mutations are persisted to the API; browser storage is not used for snippet content.
 
 New records contain the following shape:
 
@@ -207,7 +215,7 @@ New records contain the following shape:
 }
 ```
 
-`SnippetsPage` adds `id` and ISO `createdAt` and prepends new records to the shared store. Editing updates the matching record, preserves its ID and creation date, and sets `updatedAt`. Search text is represented in the URL; tag/category filters use URL parameters, while language filtering is local to the snippets view. Tags, categories, and the dashboard derive data from the shared in-memory records. Snippet persistence and backend synchronization are intentionally not implemented yet; all snippets are discarded when the page reloads or closes. Profile localStorage remains separate and is not used for snippet content.
+API records provide their database `id`, `created_at`, and `updated_at`; the API adapter exposes timestamp aliases for the existing view components. Search text is represented in the URL; tag/category filters use URL parameters, while language filtering is local to the snippets view. Tags, categories, and the dashboard derive data from the currently loaded account records. Profile localStorage remains separate and is not used for snippet content.
 
 ## Shared UI and styling
 
@@ -221,9 +229,7 @@ Static assets live in `public/` and use root-relative URLs such as `/Logo.svg`, 
 
 ## API, auth, and security
 
-The frontend has no Supabase SDK or authentication integration and has no protected routes or authorization checks. The separate Express server implements snippet API routes, but the frontend does not call them. Consequently, frontend route visibility is not authorization and localStorage is not secure storage.
-
-When integrating the existing API, keep requests in domain services, centralize base URL handling, model loading/error states, preserve response contracts, and enforce authorization on the backend/database. Never expose server credentials in the client. Workspace/auth SEO uses `noindex` where configured, but that only controls indexing.
+The client gets authentication sessions from Supabase and sends the short-lived access token as a Bearer token to the Express API. The server verifies the token and scopes data operations to that user. The browser uses only the Supabase publishable key; the secret/service-role key must stay in server environment configuration. Browser CORS is controlled by the server's `CORS_ORIGINS` allowlist. Workspace/auth SEO uses `noindex` where configured, but that only controls indexing.
 
 ## Scripts and verification
 
@@ -240,7 +246,7 @@ No client unit/integration/e2e test, type-check, or formatter script is configur
 
 Verified checks for the current architecture are `npm.cmd run build` (successful) and `npm.cmd run lint` (successful with three React-quality warnings: state update in `ProfileAvatar` effect and render-time `Date.now()` in `SnippetCard`).
 
-Manual smoke checks should cover landing/legal links, authentication placeholder messages, `/Snippet?create=1`, required form validation, duplicate-title prevention (including case/whitespace variants and editing an existing title), custom language entry and filtering, tag entry with Enter/comma, search/category/language filters, deletion confirmation, dashboard refresh, mobile sidebar, and direct deep links.
+Manual smoke checks should cover landing/legal links, signup/login, protected workspace redirects, API-backed `/Snippet?create=1`, required form validation, duplicate-title prevention, custom language entry and filtering, tag entry with Enter/comma, search/category/language filters, API deletion confirmation, persistence after reload, sign-out, mobile sidebar, and direct deep links.
 
 ## Development guides
 
@@ -276,21 +282,23 @@ Keep network/storage work out of shared visual components. Avoid abstractions th
 
 - **PowerShell blocks npm:** use `npm.cmd`.
 - **Deep-link 404:** configure the host to rewrite application paths to `index.html`; see `Client/vercel.json`.
-- **Snippets disappeared:** snippets are session-only and are discarded on page reload or close.
+- **API request fails:** verify both Vite variables, `Server/.env`, server status, and that the browser origin is included in `CORS_ORIGINS`.
+- **401 response:** sign in again; the API requires a valid Supabase user access token.
+- **Snippets disappeared:** confirm the account and Supabase database project are the same and that the snippets migration has been applied.
 - **Missing asset:** verify the file is under `Client/public/` and use a root-relative URL.
-- **Authentication unavailable:** the client authentication screens are placeholders until server authentication is implemented.
+- **Supabase configuration missing:** copy `.env.example` to `.env.local`, set the project URL and publishable key, and restart Vite.
 - **Lint warning:** fix the specific state derivation or time-dependent render logic rather than disabling React rules globally.
 
 ## Production
 
 Run `npm run build` and deploy `Client/dist/` to a static host with SPA fallback to `index.html`. Vercel uses the checked-in rewrite. Public assets are copied from `public/`.
 
-The client has no authentication integration, and there is no verified production deployment. The snippet client is not integrated with the API or Supabase data storage. Do not claim server-backed authentication or snippet persistence until implemented and tested end to end.
+For production, set the client API/Supabase variables and the server `CORS_ORIGINS` list to the exact HTTPS frontend origin(s). Configure the Supabase Auth redirect allowlist for the deployed frontend, and apply the database migration. No live production deployment has been tested.
 
 ## Limitations and contribution
 
-Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, in-session snippet create/edit/search/filter/display/delete flows, tag and category browsing, local profile settings, session-vault controls, and reusable shared controls.
+Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, Supabase password/OAuth sign-in, protected workspace routes, API-backed snippet CRUD and account-scoped persistence, tag and category browsing, local profile settings, account sign-out, and reusable shared controls.
 
-Partial or unimplemented: client authentication, snippet persistence and API integration, protected client routes, server account creation, tag/category editing independent of snippets, appearance settings, client automated tests, type checking, encryption, account scoping, and cross-device synchronization. The separate server package implements snippet API routes and Supabase token validation and persistence.
+Partial or unimplemented: password recovery/change, server account deletion, tag/category editing independent of snippets, appearance settings, client automated tests, type checking, and client-managed token encryption. Supabase handles session storage; the backend provides account-scoped API access.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.

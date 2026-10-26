@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 let snippets = []
 let hasCreatedSnippet = false
+let snippetError = ''
 const subscribers = new Set()
 
 const notifySubscribers = () => {
@@ -14,12 +15,20 @@ const subscribe = (subscriber) => {
 }
 
 export const useSnippets = () => useSyncExternalStore(subscribe, () => snippets, () => snippets)
+export const useSnippetError = () => useSyncExternalStore(subscribe, () => snippetError, () => snippetError)
+export const getSnippets = () => snippets
+
+export const setSnippetError = (error) => {
+  snippetError = error
+  notifySubscribers()
+}
 
 export const setSnippets = (nextSnippets) => {
   const updatedSnippets = typeof nextSnippets === 'function' ? nextSnippets(snippets) : nextSnippets
   if (updatedSnippets === snippets) return
 
   snippets = updatedSnippets
+  snippetError = ''
   if (snippets.length > 0) hasCreatedSnippet = true
   notifySubscribers()
 }
@@ -29,6 +38,7 @@ export const getHasCreatedSnippet = () => hasCreatedSnippet
 export const clearSnippets = () => {
   snippets = []
   hasCreatedSnippet = false
+  snippetError = ''
   notifySubscribers()
 }
 

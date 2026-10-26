@@ -28,6 +28,8 @@ const SnippetForm = ({ onClose, onSave, initialSnippet, existingSnippets = [] })
     const [languageError, setLanguageError] = useState('')
     const [tags, setTags] = useState(() => initialSnippet?.tags || [])
     const [tagInput, setTagInput] = useState('')
+    const [saveError, setSaveError] = useState('')
+    const [isSaving, setIsSaving] = useState(false)
     const formRef = useRef(null)
 
     const updateField = (event) => {
@@ -56,8 +58,9 @@ const SnippetForm = ({ onClose, onSave, initialSnippet, existingSnippets = [] })
         setTagInput('')
     }
 
-    const submitForm = (event) => {
+    const submitForm = async (event) => {
         event.preventDefault()
+        setSaveError('')
         const title = form.title.trim()
         if (!title) {
             setTitleError('Enter a title to continue.')
@@ -78,12 +81,19 @@ const SnippetForm = ({ onClose, onSave, initialSnippet, existingSnippets = [] })
             return
         }
 
-        onSave({
-            ...form,
-            title,
-            language,
-            tags,
-        })
+        setIsSaving(true)
+        try {
+            await onSave({
+                ...form,
+                title,
+                language,
+                tags,
+            })
+        } catch (error) {
+            setSaveError(error.message || 'Could not save this snippet. Please try again.')
+        } finally {
+            setIsSaving(false)
+        }
     }
 
     return (
@@ -200,10 +210,11 @@ const SnippetForm = ({ onClose, onSave, initialSnippet, existingSnippets = [] })
                     </div>
 
                     <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+                        {saveError && <p role="alert" className="text-sm text-[#F08C97] sm:mr-auto sm:self-center">{saveError}</p>}
                         <button type="button" onClick={onClose} className="min-h-10 rounded-lg border border-[#2B3040] px-4 text-sm font-semibold text-[#C7CBD5] transition-colors hover:bg-[#1C2029]">Cancel</button>
-                        <button type="submit" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#5E5AE6] bg-[#6E6BF4] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7]">
+                        <button type="submit" disabled={isSaving} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#5E5AE6] bg-[#6E6BF4] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] disabled:cursor-wait disabled:opacity-60">
                             <Save aria-hidden="true" size={16} />
-                            {initialSnippet ? 'Save changes' : 'Save snippet'}
+                            {isSaving ? 'Saving...' : initialSnippet ? 'Save changes' : 'Save snippet'}
                         </button>
                     </div>
                 </form>

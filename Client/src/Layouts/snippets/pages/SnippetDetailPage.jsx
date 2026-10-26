@@ -6,6 +6,7 @@ import DashboardHeader from '../../../components/DashboardHeader'
 import ErrorPage from '../../../components/ErrorPage'
 import SnippetForm from '../components/SnippetForm'
 import { setSnippets, useSnippets } from '../../../lib/snippetStore'
+import { updateSnippet as updateSnippetRequest } from '../../../lib/snippetApi'
 
 const SnippetDetailPage = () => {
   const { snippetId } = useParams()
@@ -24,9 +25,10 @@ const SnippetDetailPage = () => {
     }
   }
 
-  const updateSnippet = (updates) => {
+  const updateSnippet = async (updates) => {
+    const updatedSnippet = await updateSnippetRequest(snippetId, updates)
     setSnippets((currentSnippets) => currentSnippets.map((savedSnippet) => (
-      String(savedSnippet.id) === snippetId ? { ...savedSnippet, ...updates } : savedSnippet
+      String(savedSnippet.id) === snippetId ? updatedSnippet : savedSnippet
     )))
     closeEditing()
   }

@@ -1,12 +1,20 @@
 const express = require('express')
+const cors = require('cors')
 const { rateLimit } = require('express-rate-limit')
 const snippetsRouter = require('./routes/snippets')
 const { errorHandler } = require('./middleware/errorHandler')
 const { HttpError } = require('./utils/httpError')
+const { getCorsOrigins } = require('./config/env')
 
 const app = express()
 
 app.disable('x-powered-by')
+
+app.use('/api', cors({
+  origin: getCorsOrigins(),
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+}))
 
 const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,

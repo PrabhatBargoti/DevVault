@@ -1,8 +1,11 @@
 import { Component, lazy, Suspense, useEffect, useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Outlet, Route, Routes } from 'react-router-dom'
 import RouteLoadingSkeleton from '../components/RouteLoadingSkeleton'
 import OfflinePage from '../components/OfflinePage'
 import ErrorPage from '../components/ErrorPage'
+import { RequireAuth, useAuth } from '../lib/authContext'
+import { clearSnippets, setSnippets } from '../lib/snippetStore'
+import { listSnippets } from '../lib/snippetApi'
 
 const SignUpPage = lazy(() => import('../Layouts/auth/SignUpPage'))
 const LoginPage = lazy(() => import('../Layouts/auth/LoginPage'))
@@ -64,6 +67,50 @@ class AppErrorBoundary extends Component {
   }
 }
 
+const WorkspaceData = () => {
+  const { session, loading: authLoading } = useAuth()
+  const [loadState, setLoadState] = useState({ loading: true, error: '' })
+  const [loadedUserId, setLoadedUserId] = useState('')
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    if (authLoading) return undefined
+    if (!session) {
+      clearSnippets()
+      setLoadState({ loading: false, error: '' })
+      return undefined
+    }
+
+    let isActive = true
+    clearSnippets()
+    setLoadState({ loading: true, error: '' })
+    listSnippets().then((snippets) => {
+      if (!isActive) return
+      setSnippets(snippets)
+      setLoadedUserId(session.user.id)
+      setLoadState({ loading: false, error: '' })
+    }).catch((error) => {
+      if (!isActive) return
+      setLoadState({ loading: false, error: error.message })
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [authLoading, session?.user?.id, attempt])
+
+  if (authLoading || loadState.loading || loadedUserId !== session?.user?.id) return <RouteLoadingSkeleton />
+  if (loadState.error) {
+    return (
+      <ErrorPage
+        message={loadState.error}
+        onRetry={() => setAttempt((current) => current + 1)}
+      />
+    )
+  }
+  return <Outlet />
+}
+
 const App = () => {
   const [isOnline, setIsOnline] = useState(() => window.navigator.onLine)
 
@@ -100,12 +147,16 @@ const App = () => {
               <Route path="/" element={<LandingPage />} />
               <Route path="/Signup" element={<SignUpPage />} />
               <Route path="/Login" element={<LoginPage />} />
-              <Route path="/Home" element={<DashboardPage />} />
-              <Route path="/Snippet" element={<SnippetsPage />} />
-              <Route path="/Snippet/:snippetId" element={<SnippetDetailPage />} />
-              <Route path="/Tags" element={<TagsPage />} />
-              <Route path="/Categorie" element={<CategoriesPage />} />
-              <Route path="/Setting" element={<SettingsPage />} />
+              <Route element={<RequireAuth />}>
+                <Route element={<WorkspaceData />}>
+                  <Route path="/Home" element={<DashboardPage />} />
+                  <Route path="/Snippet" element={<SnippetsPage />} />
+                  <Route path="/Snippet/:snippetId" element={<SnippetDetailPage />} />
+                  <Route path="/Tags" element={<TagsPage />} />
+                  <Route path="/Categorie" element={<CategoriesPage />} />
+                  <Route path="/Setting" element={<SettingsPage />} />
+                </Route>
+              </Route>
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/change-password" element={<ChangePasswordPage />} />
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -113,12 +164,4 @@ const App = () => {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
-        </div>
-      ) : (
-        <OfflinePage onRetry={() => setIsOnline(window.navigator.onLine)} />
-      )}
-    </AppErrorBoundary>
-  )
-}
-
-export default App
+        </d

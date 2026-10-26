@@ -1,6 +1,6 @@
 # DevVault Backend Guide
 
-This guide describes the backend as it is implemented today. The backend is a separate Node.js package; it is not currently connected to the React client.
+This guide describes the backend as implemented today. The API serves the React client using authenticated Supabase access tokens and a configurable CORS allowlist.
 
 ## Contents
 
@@ -33,7 +33,7 @@ This guide describes the backend as it is implemented today. The backend is a se
 
 `Server/` contains an Express 5 API for authenticated snippet CRUD. It validates requests, applies rate limits, verifies Supabase access tokens, and stores snippets in the Supabase Postgres `public.snippets` table.
 
-The backend is a separate package from `Client/`. The frontend currently uses an in-memory snippet store, has placeholder authentication screens, and sends no requests to this API. There is no frontend API base URL, CORS policy, or end-to-end client/server flow to preserve. The API is therefore usable by an external client that obtains a Supabase access token, but account registration and login are not implemented by this server.
+The backend is a separate package from `Client/`. The client authenticates through Supabase Auth, sends user access tokens to this API, and stores snippet data in Supabase through the API. The server does not implement registration or login endpoints; browser authentication is provided by the Supabase client SDK.
 
 The main boundaries are:
 
@@ -52,6 +52,7 @@ The main boundaries are:
 | Language | JavaScript |
 | Module system | CommonJS (`require` / `module.exports`) |
 | HTTP framework | Express 5 |
+| CORS | `cors`, with an explicit environment-configured origin allowlist |
 | Rate limiting | `express-rate-limit`, using its default in-memory store |
 | Environment loading | `dotenv` |
 | Authentication and database | `@supabase/supabase-js` |
@@ -65,7 +66,7 @@ The server package declares no build step. Its `package.json` is the source of t
 
 ## 3. Repository boundaries
 
-`Client/` is a React/Vite application; `Server/` is the API and Supabase project. The client has no Supabase SDK or HTTP integration with this API. Do not put server credentials in client code or browser-accessible environment variables.
+`Client/` is a React/Vite application; `Server/` is the API and Supabase project. The browser uses the Supabase publishable key and the server API URL. Never put the server's secret/service-role key in client code or browser-accessible environment variables.
 
 Backend changes should normally stay within `Server/`. The root `.gitignore` covers `.env`, `.temp/`, `.branches/`, and `Server/node_modules/`. `Server/supabase/.gitignore` also ignores the Supabase CLI's local `.temp` and `.branches` directories.
 
@@ -128,9 +129,10 @@ PORT=3000
 | `SUPABASE_URL` | Yes | Supabase project URL. HTTPS is required except for `localhost` and `127.0.0.1`. |
 | `SUPABASE_PUBLISHABLE_KEY` | Yes, or legacy alias | Key used by Supabase Auth to verify a user's access token. `SUPABASE_ANON_KEY` is accepted as a fallback. |
 | `SUPABASE_SECRET_KEY` | Yes, or legacy alias | Server-only key used by the database client. `SUPABASE_SERVICE_ROLE_KEY` is accepted as a fallback. Treat either as a privileged secret. |
+| `CORS_ORIGINS` | No | Comma-separated exact HTTP(S) origins; defaults to `http://localhost:5173`. Do not include URL paths or trailing slashes. |
 | `PORT` | No | Integer TCP port from 1 through 65535; defaults to `3000`. |
 
-The aliases are used only when their corresponding preferred variable is unset or empty. The application reports a configuration error and does not start if the URL or either key is missing or invalid. `.env.example` contains placeholders only. Never copy real credentials into documentation or source control.
+The aliases are used only when their corresponding preferred variable is unset or empty. The application reports a configuration error and does not start if the URL, either key, port, or CORS origin is invalid. `.env.example` contains placeholders only. Never copy real credentials into documentation or source control.
 
 `Server/supabase/config.toml` enables migrations and has no seed SQL paths configured. No seed script exists in this repository. Applying migrations is an explicit Supabase CLI operation; the Express process does not migrate the database automatically.
 
@@ -141,7 +143,7 @@ HTTP request
   ↓
 server.js loads dotenv, validates config, and starts src/app.js
   ↓
-Express app: API-wide rate limit on /api
+Express app: CORS allowlist and API-wide rate limit on /api
   ↓
 JSON body parser (128 KB maximum, strict JSON)
   ↓
@@ -235,11 +237,12 @@ Authentication establishes the identity; authorization limits snippet operations
 The middleware order in `src/app.js` is:
 
 1. Disable Express's `X-Powered-By` header.
-2. Apply a 100-request-per-15-minute limiter to `/api`.
-3. Parse strict JSON bodies up to 128 KiB.
-4. Mount `/api/snippets`.
-5. Convert unmatched requests to a structured `404`.
-6. Handle errors in `src/middleware/errorHandler.js`.
+2. Apply the configured CORS allowlist to `/api` and answer allowed preflight requests.
+3. Apply a 100-request-per-15-minute limiter to `/api`.
+4. Parse strict JSON bodies up to 128 KiB.
+5. Mount `/api/snippets`.
+6. Convert unmatched requests to a structured `404`.
+7. Handle errors in `src/middleware/errorHandler.js`.
 
 The snippets router applies `authenticate` to all its endpoints. `POST`, `PATCH`, and `DELETE` additionally use an IP-based write limiter (30 per 15 minutes) and an authenticated-account limiter (20 per 15 minutes). Each limiter uses the default in-memory store. No CORS, request logging, compression, security-header package, file-upload, or proxy-trust middleware is configured. Express does not trust proxy headers by default.
 
@@ -322,7 +325,7 @@ Read credentials from environment variables, add placeholder names—not values�
 - **Input:** Payload, IDs, tags, and pagination are validated. JSON parsing is strict and capped at 128 KiB.
 - **Database:** The migration constrains column lengths and tag cardinality and revokes direct Data API access from ordinary roles. No raw SQL is constructed from user input.
 - **Rate limits:** Per-process in-memory limits reduce request/write bursts, but do not coordinate across multiple instances or survive restart.
-- **Network:** No CORS policy or Express `trust proxy` is enabled. A cross-origin browser client will need an intentional CORS policy. Trust proxy only when the deployment topology and trusted proxy are explicitly configured.
+- **Network:** CORS is limited to exact origins in `CORS_ORIGINS`; configure the deployed frontend origin explicitly. Requests without an `Origin` header (such as server-to-server requests) remain usable. Express `trust proxy` is not enabled; trust proxy only when the deployment topology and trusted proxy are explicitly configured.
 - **Transport:** The application itself does not configure TLS; terminate HTTPS at a trusted hosting platform or proxy in production.
 - **Errors and logs:** Client-facing server errors are generic; server logs may include provider error messages. Do not log bearer tokens, request secrets, or snippet contents.
 - **Uploads:** No file upload endpoint or upload validation is implemented.
@@ -343,7 +346,7 @@ npm ci
 npm start
 ```
 
-Provide `SUPABASE_URL`, a publishable/anon key, a secret/service-role key, and optionally `PORT` in the runtime environment. The process validates configuration before listening. Apply the SQL migration intentionally using the Supabase CLI and the intended project:
+Provide `SUPABASE_URL`, a publishable/anon key, a secret/service-role key, and optionally `PORT` and `CORS_ORIGINS` in the runtime environment. Set `CORS_ORIGINS` to the exact browser frontend origin(s), comma-separated. The process validates configuration before listening. Apply the SQL migration intentionally using the Supabase CLI and the intended project:
 
 ```powershell
 npx supabase link --project-ref YOUR_PROJECT_REF
@@ -352,7 +355,7 @@ npx supabase db push
 
 For local Supabase development, `npx supabase start` and `npx supabase db reset` are available from `Server/`; the reset command is destructive to the local Supabase database and should not be run against production. No Dockerfile, backend deployment manifest, CI workflow, health check, or production deployment configuration is present in the inspected project. Deployment has not been tested as part of this refactor.
 
-Use HTTPS at the hosting layer, configure CORS only if a browser origin needs access, and set trusted proxies only to match known infrastructure. The API does not automatically run migrations or provide production-grade distributed rate limiting.
+Use HTTPS at the hosting layer, configure the deployed frontend's exact origin in `CORS_ORIGINS`, and set trusted proxies only to match known infrastructure. The API does not automatically run migrations or provide production-grade distributed rate limiting.
 
 ## 22. Troubleshooting
 
@@ -365,7 +368,7 @@ Use HTTPS at the hosting layer, configure CORS only if a browser origin needs ac
 | API returns `400` or `413` | Check JSON syntax, allowed fields, field limits, pagination syntax, and the 128 KiB body limit. |
 | API returns `404` for an existing snippet | Confirm it belongs to the authenticated user; cross-user records intentionally appear not found. |
 | Database request returns `500` | Check Supabase connectivity, key permissions, whether the migration is applied, and server-side error logs. Never expose the secret key while diagnosing. |
-| Browser reports a CORS error | The API does not configure CORS, and the current frontend is not integrated. Add an explicit allowlist only as part of a deliberate browser integration. |
+| Browser reports a CORS error | Confirm the frontend's exact origin (scheme, host, and port) appears in `CORS_ORIGINS`, with no path or trailing slash, and restart the API after changing its environment. |
 | Rate limits differ across deployments | Each process has independent in-memory counters. A shared store is not configured. |
 | Local database reset reports a migration issue | Inspect Supabase CLI output and the migration file; do not use a reset command against production. No seed SQL is configured. |
 
@@ -386,8 +389,8 @@ The listed checks are diagnostic guidance; no remote Supabase service or deploym
 
 **Implemented:** authenticated snippet list/create/read/update/delete; input and pagination validation; owner-scoped service queries; database migration with constraints and RLS policies; global and write rate limits; structured API errors.
 
-**Partial or not connected:** Supabase Auth is used only to verify supplied access tokens. The browser app does not obtain tokens or call the API. The project has no HTTP-level tests or live database integration tests.
+**Partial or not connected:** Account registration/login are handled by Supabase Auth in the browser rather than backend endpoints. The project has no live database integration tests.
 
-**Not implemented:** server-side signup/login/logout/password recovery; frontend synchronization; CORS configuration; health endpoint; request IDs and access logs; distributed rate-limit storage; Docker or CI/deployment automation; uploads, email, background jobs, and seed data.
+**Not implemented:** backend auth endpoints; health endpoint; request IDs and access logs; distributed rate-limit storage; Docker or CI/deployment automation; uploads, email, background jobs, and seed data.
 
-**Potential follow-up:** build an authenticated frontend integration with an explicit origin policy, add HTTP tests using controlled mocks, configure shared rate limiting and platform observability for multi-instance deployment, and validate the schema migration against a disposable Supabase environment before applying it to a project.
+**Potential follow-up:** add HTTP tests using controlled mocks, configure shared rate limiting and platform observability for multi-instance deployment, and validate the schema migration against a disposable Supabase environment before applying it to a project.

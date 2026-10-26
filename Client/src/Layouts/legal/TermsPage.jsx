@@ -24,17 +24,17 @@ const TermsPage = () => (
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Your content</h2>
       <p className="mt-3">
         You retain your rights to content you submit. You give DevVault permission to process that content only as
-        needed to provide and maintain the features you use. In the current client, snippets are held in memory for
-        the active page session and are discarded when you reload or close the page. Profile settings are stored
-        locally in your browser. Snippets are not synchronized with the separate snippet API.
+        needed to provide and maintain the features you use. Snippets are associated with your account and stored
+        through the DevVault API in the configured Supabase database. Profile settings are stored locally in your
+        browser.
       </p>
     </section>
 
     <section>
       <h2 className="text-xl font-semibold text-[#E7E9EE]">Accounts and third-party services</h2>
       <p className="mt-3">
-        Account creation and sign-in are not currently available in the client. The backend uses Supabase to validate
-        access tokens for API requests. We may suspend access when reasonably necessary to protect the service, users,
+        Account creation and sign-in are provided through Supabase Auth. The backend validates access tokens for API
+        requests. We may suspend access when reasonably necessary to protect the service, users,
         or its security.
       </p>
     </section>

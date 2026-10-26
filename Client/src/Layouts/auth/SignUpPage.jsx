@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import AuthProviderIcon from '../../components/AuthProviderIcon'
 import SEO from '../../components/SEO'
 import HomeShortcut from '../../components/HomeShortcut'
+import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient'
 
 const SignUpPage = () => {
   const navigate = useNavigate()
@@ -11,25 +12,61 @@ const SignUpPage = () => {
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setError('Account creation is unavailable until client authentication is connected to the server.')
+    setError('')
+    setMessage('')
+    if (!isSupabaseConfigured) {
+      setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
+      return
+    }
+
+    setIsSubmitting(true)
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name.trim() } },
+    })
+    setIsSubmitting(false)
+    if (signUpError) {
+      setError(signUpError.message)
+      return
+    }
+    if (data.session) {
+      navigate('/Home', { replace: true })
+    } else {
+      setMessage('Check your email for a confirmation link, then sign in.')
+    }
   }
 
-  const handleOAuthSignUp = (provider) => {
+  const handleOAuthSignUp = async (provider) => {
+    setError('')
     if (!acceptedTerms) {
       setError('Accept the Terms and Conditions and Privacy Policy before continuing.')
       return
     }
-    setError(`${provider} sign-up is unavailable until client authentication is connected to the server.`)
+    if (!isSupabaseConfigured) {
+      setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
+      return
+    }
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/Home`,
+        queryParams: { prompt: 'select_account' },
+      },
+    })
+    if (oauthError) setError(oauthError.message)
   }
 
   return (
     <>
       <SEO
         title="Create Your Account"
-        description="DevVault account creation is not available in the client yet."
+        description="Create a DevVault account to save your snippets."
         path="/Signup"
         noIndex
       />
@@ -42,7 +79,7 @@ const SignUpPage = () => {
         <main className="w-full max-w-md">
           <div className="rounded-2xl border border-[#232733] bg-[#12151C] p-5 sm:p-6">
             <p role="status" className="mb-4 rounded-lg border border-[#3B3652] bg-[#191725] p-3 text-sm text-[#C3C0E8]">
-              Sign-up and sign-in are not available in the client yet. Authentication will be connected through the server.
+              Your account lets you sync snippets securely with your DevVault API.
             </p>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <div>
@@ -104,13 +141,14 @@ const SignUpPage = () => {
               </label>
 
               {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+              {message && <p role="status" className="text-sm text-emerald-400">{message}</p>}
 
               <button
                 type="submit"
-                disabled={!acceptedTerms}
+                disabled={!acceptedTerms || isSubmitting}
                 className="w-full cursor-pointer rounded-lg bg-[#6E6BF4] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Create account
+                {isSubmitting ? 'Creating account...' : 'Create account'}
               </button>
 
               <div className="flex items-center gap-3">

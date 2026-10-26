@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Check, ImagePlus, LockKeyhole, ShieldCheck, Trash2, UserRound } from 'lucide-react'
+import { AlertTriangle, Check, ImagePlus, LockKeyhole, LogOut, ShieldCheck, Trash2, UserRound } from 'lucide-react'
 import { getSavedProfile, saveProfile as persistProfile } from '../../../lib/profileStorage'
-import { clearSnippets } from '../../../lib/snippetStore'
+import { clearSnippets, getSnippets, setSnippets } from '../../../lib/snippetStore'
+import { deleteSnippet as deleteSnippetRequest, listSnippets } from '../../../lib/snippetApi'
+import { useAuth } from '../../../lib/authContext'
 
 const AVATAR_SIZE_LIMIT = 1024 * 1024
 const inputClassName = 'mt-1.5 min-h-11 w-full rounded-lg border border-[#2B3040] bg-[#12151C] px-3.5 text-sm text-[#E7E9EE] outline-none transition-colors placeholder:text-[#5A6275] focus:border-[#6E6BF4] focus:ring-2 focus:ring-[#6E6BF4]/20'
@@ -19,6 +21,8 @@ const SettingFill = () => {
   const fileInputRef = useRef(null)
   const cancelClearRef = useRef(null)
   const navigate = useNavigate()
+  const { user, signOut } = useAuth()
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   useEffect(() => {
     if (!isClearDialogOpen) return undefined
@@ -75,10 +79,37 @@ const SettingFill = () => {
     }
   }
 
-  const clearVault = () => {
-    clearSnippets()
-    setIsClearDialogOpen(false)
-    navigate('/Home')
+  const clearVault = async () => {
+    setError('')
+    try {
+      for (const snippet of getSnippets()) {
+        await deleteSnippetRequest(snippet.id)
+      }
+      clearSnippets()
+      setIsClearDialogOpen(false)
+      navigate('/Home')
+    } catch (clearError) {
+      try {
+        setSnippets(await listSnippets())
+      } catch (refreshError) {
+        setError(`${clearError.message} Remaining snippets could not be refreshed: ${refreshError.message}`)
+        return
+      }
+      setError(clearError.message || 'Could not delete all snippets. Please try again.')
+    }
+  }
+
+  const handleSignOut = async () => {
+    setError('')
+    setIsSigningOut(true)
+    try {
+      await signOut()
+      navigate('/Login', { replace: true })
+    } catch (signOutError) {
+      setError(signOutError.message || 'Could not sign out. Please try again.')
+    } finally {
+      setIsSigningOut(false)
+    }
   }
 
   const tabs = [
@@ -92,7 +123,7 @@ const SettingFill = () => {
         <header className="mb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9290FF]">Workspace</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#E7E9EE] sm:text-3xl">Settings</h1>
-          <p className="mt-2 text-sm leading-6 text-[#8B93A7] sm:text-[15px]">Manage your profile and current-session vault.</p>
+          <p className="mt-2 text-sm leading-6 text-[#8B93A7] sm:text-[15px]">Manage your profile and saved snippets.</p>
         </header>
 
         <div role="tablist" aria-label="Settings sections" className="flex gap-1 overflow-x-auto border-b border-[#252A37]">
@@ -213,7 +244,7 @@ const SettingFill = () => {
           <section id="account-panel" role="tabpanel" aria-labelledby="account-tab" className="max-w-2xl pt-6">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-[#E7E9EE]">Account</h2>
-              <p className="mt-1 text-sm text-[#8B93A7]">Review sign-in availability and manage data stored on this device.</p>
+              <p className="mt-1 text-sm text-[#8B93A7]">Manage your signed-in account and saved snippets.</p>
             </div>
 
             <div className="space-y-3">
@@ -224,7 +255,7 @@ const SettingFill = () => {
                   </span>
                   <div>
                     <h3 className="text-sm font-semibold text-[#E7E9EE]">Password and sessions</h3>
-                    <p className="mt-1 max-w-md text-sm leading-5 text-[#8B93A7]">Account sign-in and password recovery are not available in the client yet; authentication will be connected through the server.</p>
+                    <p className="mt-1 max-w-md text-sm leading-5 text-[#8B93A7]">Signed in as {user?.email || 'your DevVault account'}. Your snippets are saved to your account.</p>
                   </div>
                 </div>
                 <button
@@ -236,14 +267,30 @@ const SettingFill = () => {
                 </button>
               </div>
 
+              <div className="flex flex-col gap-4 rounded-xl border border-[#252A37] bg-[#12151C] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                <div>
+                  <h3 className="text-sm font-semibold text-[#E7E9EE]">Sign out</h3>
+                  <p className="mt-1 text-sm leading-5 text-[#8B93A7]">End this session on this device.</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={isSigningOut}
+                  onClick={handleSignOut}
+                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[#303545] px-3 text-sm font-medium text-[#D3D8E4] transition-colors hover:bg-[#1C2029] disabled:cursor-wait disabled:opacity-60 sm:self-center"
+                >
+                  <LogOut aria-hidden="true" size={15} />
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                </button>
+              </div>
+
               <div className="rounded-xl border border-[#252A37] bg-[#12151C] p-4 sm:p-5">
                 <div className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#22243B] text-[#9290FF]">
                     <ShieldCheck aria-hidden="true" size={18} />
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#E7E9EE]">Session-only snippets</h3>
-                    <p className="mt-1 text-sm leading-5 text-[#8B93A7]">Snippets stay in memory for this session only. They are not saved in browser storage and are cleared when you reload or close the page. Backend sync will be added later.</p>
+                    <h3 className="text-sm font-semibold text-[#E7E9EE]">Saved snippets</h3>
+                    <p className="mt-1 text-sm leading-5 text-[#8B93A7]">Snippets are stored in your account and synchronized with the DevVault API.</p>
                   </div>
                 </div>
               </div>
@@ -255,8 +302,8 @@ const SettingFill = () => {
                       <AlertTriangle aria-hidden="true" size={18} />
                     </span>
                     <div>
-                      <h3 className="text-sm font-semibold text-[#F08C97]">Clear session vault</h3>
-                      <p className="mt-1 max-w-md text-sm leading-5 text-[#A4878B]">Remove all snippets from the current session. Your profile details will remain.</p>
+                      <h3 className="text-sm font-semibold text-[#F08C97]">Delete all saved snippets</h3>
+                      <p className="mt-1 max-w-md text-sm leading-5 text-[#A4878B]">Permanently remove every snippet in your account. Your profile details will remain.</p>
                     </div>
                   </div>
                   <button
@@ -265,7 +312,7 @@ const SettingFill = () => {
                     className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#8F3943] px-4 text-sm font-semibold text-[#F08C97] transition-colors hover:bg-[#352127] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E87582]"
                   >
                     <Trash2 aria-hidden="true" size={15} />
-                    Clear session vault
+                    Delete all snippets
                   </button>
                 </div>
                 {error && <p role="alert" className="mt-4 text-sm text-[#F08C97]">{error}</p>}
@@ -289,9 +336,9 @@ const SettingFill = () => {
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#352127] text-[#E38A91]">
               <Trash2 aria-hidden="true" size={19} />
             </div>
-            <h2 id="clear-vault-title" className="mt-4 text-base font-semibold text-[#E7E9EE]">Clear all snippets from this session?</h2>
+            <h2 id="clear-vault-title" className="mt-4 text-base font-semibold text-[#E7E9EE]">Delete all snippets from your account?</h2>
             <p id="clear-vault-description" className="mt-2 text-sm leading-5 text-[#8B93A7]">
-              This removes every snippet currently held in memory. Your profile details will not be deleted.
+              This permanently deletes your saved snippets from the server. Your profile details will not be deleted.
             </p>
             {error && <p role="alert" className="mt-3 text-sm text-[#F08C97]">{error}</p>}
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

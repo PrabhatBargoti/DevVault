@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthProviderIcon from '../../components/AuthProviderIcon'
 import SEO from '../../components/SEO'
 import HomeShortcut from '../../components/HomeShortcut'
+import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -11,25 +12,48 @@ const LoginPage = () => {
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setError('Sign-in is unavailable until client authentication is connected to the server.')
+    setError('')
+    if (!isSupabaseConfigured) {
+      setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
+      return
+    }
+
+    setIsSubmitting(true)
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    setIsSubmitting(false)
+    if (signInError) {
+      setError(signInError.message)
+      return
+    }
+    navigate(location.state?.from?.pathname || '/Home', { replace: true })
   }
 
-  const handleOAuthSignIn = (provider) => {
+  const handleOAuthSignIn = async (provider) => {
+    setError('')
     if (!acceptedTerms) {
       setError('Accept the Terms and Conditions and Privacy Policy before continuing with a social account.')
       return
     }
-    setError(`${provider} sign-in is unavailable until client authentication is connected to the server.`)
+    if (!isSupabaseConfigured) {
+      setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
+      return
+    }
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/Home` },
+    })
+    if (oauthError) setError(oauthError.message)
   }
 
   return (
     <>
       <SEO
         title="Log in"
-        description="DevVault sign-in is not available in the client yet."
+        description="Sign in to your DevVault account."
         path="/Login"
         noIndex
       />
@@ -41,7 +65,7 @@ const LoginPage = () => {
           </header>
           <main className="rounded-[20px] border border-[#232733] bg-[#12151C] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:p-6">
             <p role="status" className="mb-4 rounded-lg border border-[#3B3652] bg-[#191725] p-3 text-sm text-[#C3C0E8]">
-              Sign-up and sign-in are not available in the client yet. Authentication will be connected through the server.
+              Sign in with your DevVault account to access your saved snippets.
             </p>
             {location.state?.message && (
               <p role="status" className="mb-4 text-sm text-emerald-400">{location.state.message}</p>
@@ -81,7 +105,7 @@ const LoginPage = () => {
                 type="submit"
                 className="w-full cursor-pointer rounded-lg bg-[#6E6BF4] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Log in
+                {isSubmitting ? 'Signing in...' : 'Log in'}
               </button>
             </form>
 
@@ -106,7 +130,7 @@ const LoginPage = () => {
               </label>
               <button
                 type="button"
-                disabled={!acceptedTerms}
+                disabled={isSubmitting}
                 onClick={() => handleOAuthSignIn('github')}
                 className="w-full cursor-pointer rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
