@@ -1,21 +1,15 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import RouteLoadingSkeleton from '../components/RouteLoadingSkeleton'
+import { useEffect, useState } from 'react'
+import { AuthContext } from './authState'
 import { isSupabaseConfigured, supabase } from './supabaseClient'
 import { clearSnippets } from './snippetStore'
 
-const AuthContext = createContext(null)
-
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(supabase))
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false)
-      return undefined
-    }
+    if (!supabase) return undefined
 
     let isActive = true
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -64,19 +58,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) throw new Error('useAuth must be used inside AuthProvider.')
-  return context
-}
-
-export const RequireAuth = () => {
-  const { user, loading } = useAuth()
-  const location = useLocation()
-
-  if (loading) return <RouteLoadingSkeleton />
-  if (!user) return <Navigate to="/Login" replace state={{ from: location }} />
-  return <Outlet />
 }

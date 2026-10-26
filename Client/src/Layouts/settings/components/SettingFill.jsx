@@ -4,7 +4,7 @@ import { AlertTriangle, Check, ImagePlus, LockKeyhole, LogOut, ShieldCheck, Tras
 import { getSavedProfile, saveProfile as persistProfile } from '../../../lib/profileStorage'
 import { clearSnippets, getSnippets, setSnippets } from '../../../lib/snippetStore'
 import { deleteSnippet as deleteSnippetRequest, listSnippets } from '../../../lib/snippetApi'
-import { useAuth } from '../../../lib/authContext'
+import { useAuth } from '../../../lib/useAuth'
 
 const AVATAR_SIZE_LIMIT = 1024 * 1024
 const inputClassName = 'mt-1.5 min-h-11 w-full rounded-lg border border-[#2B3040] bg-[#12151C] px-3.5 text-sm text-[#E7E9EE] outline-none transition-colors placeholder:text-[#5A6275] focus:border-[#6E6BF4] focus:ring-2 focus:ring-[#6E6BF4]/20'

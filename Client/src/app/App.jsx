@@ -3,8 +3,9 @@ import { Outlet, Route, Routes } from 'react-router-dom'
 import RouteLoadingSkeleton from '../components/RouteLoadingSkeleton'
 import OfflinePage from '../components/OfflinePage'
 import ErrorPage from '../components/ErrorPage'
-import { RequireAuth, useAuth } from '../lib/authContext'
-import { clearSnippets, setSnippets } from '../lib/snippetStore'
+import RequireAuth from '../lib/RequireAuth'
+import { useAuth } from '../lib/useAuth'
+import { setSnippets } from '../lib/snippetStore'
 import { listSnippets } from '../lib/snippetApi'
 
 const SignUpPage = lazy(() => import('../Layouts/auth/SignUpPage'))
@@ -69,46 +70,39 @@ class AppErrorBoundary extends Component {
 
 const WorkspaceData = () => {
   const { session, loading: authLoading } = useAuth()
-  const [loadState, setLoadState] = useState({ loading: true, error: '' })
-  const [loadedUserId, setLoadedUserId] = useState('')
+  const userId = session?.user?.id || ''
+  const [loadResult, setLoadResult] = useState({ userId: '', attempt: -1, error: '' })
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if (authLoading) return undefined
-    if (!session) {
-      clearSnippets()
-      setLoadState({ loading: false, error: '' })
-      return undefined
-    }
+    if (authLoading || !userId) return undefined
 
     let isActive = true
-    clearSnippets()
-    setLoadState({ loading: true, error: '' })
     listSnippets().then((snippets) => {
       if (!isActive) return
       setSnippets(snippets)
-      setLoadedUserId(session.user.id)
-      setLoadState({ loading: false, error: '' })
+      setLoadResult({ userId, attempt, error: '' })
     }).catch((error) => {
       if (!isActive) return
-      setLoadState({ loading: false, error: error.message })
+      setLoadResult({ userId, attempt, error: error.message })
     })
 
     return () => {
       isActive = false
     }
-  }, [authLoading, session?.user?.id, attempt])
+  }, [authLoading, userId, attempt])
 
-  if (authLoading || loadState.loading) return <RouteLoadingSkeleton />
-  if (loadState.error) {
+  if (authLoading || !userId || loadResult.userId !== userId || loadResult.attempt !== attempt) {
+    return <RouteLoadingSkeleton />
+  }
+  if (loadResult.error) {
     return (
       <ErrorPage
-        message={loadState.error}
+        message={loadResult.error}
         onRetry={() => setAttempt((current) => current + 1)}
       />
     )
   }
-  if (loadedUserId !== session?.user?.id) return <RouteLoadingSkeleton />
   return <Outlet />
 }
 

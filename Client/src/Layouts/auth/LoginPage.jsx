@@ -4,10 +4,12 @@ import AuthProviderIcon from '../../components/AuthProviderIcon'
 import SEO from '../../components/SEO'
 import HomeShortcut from '../../components/HomeShortcut'
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient'
+import { useAuth } from '../../lib/useAuth'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { error: sessionError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
@@ -23,13 +25,18 @@ const LoginPage = () => {
     }
 
     setIsSubmitting(true)
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-    setIsSubmitting(false)
-    if (signInError) {
-      setError(signInError.message)
-      return
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError(signInError.message)
+        return
+      }
+      navigate(location.state?.from?.pathname || '/Home', { replace: true })
+    } catch (signInError) {
+      setError(signInError.message || 'Could not sign in. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
-    navigate(location.state?.from?.pathname || '/Home', { replace: true })
   }
 
   const handleOAuthSignIn = async (provider) => {
@@ -42,11 +49,15 @@ const LoginPage = () => {
       setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
       return
     }
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/Home` },
-    })
-    if (oauthError) setError(oauthError.message)
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/Home` },
+      })
+      if (oauthError) setError(oauthError.message)
+    } catch (oauthError) {
+      setError(oauthError.message || `Could not start ${provider} sign-in.`)
+    }
   }
 
   return (
@@ -100,7 +111,7 @@ const LoginPage = () => {
                   required
                 />
               </div>
-              {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+              {(error || sessionError) && <p role="alert" className="text-sm text-red-400">{error || sessionError}</p>}
               <button
                 type="submit"
                 className="w-full cursor-pointer rounded-lg bg-[#6E6BF4] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] disabled:cursor-not-allowed disabled:opacity-50"

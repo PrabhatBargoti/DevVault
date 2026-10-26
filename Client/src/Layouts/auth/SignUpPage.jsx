@@ -25,20 +25,25 @@ const SignUpPage = () => {
     }
 
     setIsSubmitting(true)
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name.trim() } },
-    })
-    setIsSubmitting(false)
-    if (signUpError) {
-      setError(signUpError.message)
-      return
-    }
-    if (data.session) {
-      navigate('/Home', { replace: true })
-    } else {
-      setMessage('Check your email for a confirmation link, then sign in.')
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name.trim() } },
+      })
+      if (signUpError) {
+        setError(signUpError.message)
+        return
+      }
+      if (data.session) {
+        navigate('/Home', { replace: true })
+      } else {
+        setMessage('Check your email for a confirmation link, then sign in.')
+      }
+    } catch (signUpError) {
+      setError(signUpError.message || 'Could not create your account. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -52,14 +57,18 @@ const SignUpPage = () => {
       setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
       return
     }
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/Home`,
-        queryParams: { prompt: 'select_account' },
-      },
-    })
-    if (oauthError) setError(oauthError.message)
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/Home`,
+          queryParams: { prompt: 'select_account' },
+        },
+      })
+      if (oauthError) setError(oauthError.message)
+    } catch (oauthError) {
+      setError(oauthError.message || `Could not start ${provider} sign-up.`)
+    }
   }
 
   return (
