@@ -121,6 +121,7 @@ Create `Server/.env` from the safe template:
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 SUPABASE_SECRET_KEY=your-supabase-secret-key
+CORS_ORIGINS=http://localhost:5173
 PORT=3000
 ```
 
@@ -244,7 +245,7 @@ The middleware order in `src/app.js` is:
 6. Convert unmatched requests to a structured `404`.
 7. Handle errors in `src/middleware/errorHandler.js`.
 
-The snippets router applies `authenticate` to all its endpoints. `POST`, `PATCH`, and `DELETE` additionally use an IP-based write limiter (30 per 15 minutes) and an authenticated-account limiter (20 per 15 minutes). Each limiter uses the default in-memory store. No CORS, request logging, compression, security-header package, file-upload, or proxy-trust middleware is configured. Express does not trust proxy headers by default.
+The snippets router applies `authenticate` to all its endpoints. `POST`, `PATCH`, and `DELETE` additionally use an IP-based write limiter (30 per 15 minutes) and an authenticated-account limiter (20 per 15 minutes). Each limiter uses the default in-memory store. No request logging, compression, security-header package, file-upload, or proxy-trust middleware is configured. Express does not trust proxy headers by default.
 
 ## 13. Validation and error handling
 
@@ -307,7 +308,7 @@ For a new authenticated snippet operation, follow the existing boundaries:
 5. Implement cohesive database behavior in `src/services/snippets.js`; use fixed selected fields and explicit ownership filters.
 6. Throw `HttpError` for expected client errors. Let unexpected errors reach `errorHandler`.
 7. Add focused tests under `test/` and run `npm test`.
-8. If a browser integration is later added, coordinate its method, path, payload, headers, response, and error expectations without exposing secret keys.
+8. Keep browser origins limited to known frontend origins and never expose server-only keys to the browser.
 
 The existing `GET /api/snippets/:id` route is the reference for an authenticated read: the route invokes `getSnippet`, the controller validates the ID, and the service queries by both ID and owner ID.
 

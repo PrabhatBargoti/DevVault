@@ -1,32 +1,31 @@
 # DevVault
 
-DevVault is a dark-themed developer workspace and knowledge vault designed for saving, organizing, browsing, and revisiting code snippets. The repository contains a React single-page frontend and an Express API backed by Supabase. The client currently keeps snippets in memory only for the active page session and is not yet connected to the backend API.
+DevVault is a dark-themed developer workspace and knowledge vault designed for saving, organizing, browsing, and revisiting code snippets. The repository contains a React single-page frontend and an Express API backed by Supabase. The client uses Supabase Auth and the API for account-scoped snippet persistence.
 
 This repository is intentionally split into two main areas:
 
 - `Client/` — the browser application built with React, Vite, and Tailwind
 - `Server/` — the Express API, Supabase integration, and database migration
 
-The frontend provides the product UX and workflow. Client-side authentication is not currently connected; the login, signup, and password pages are placeholders until server authentication is implemented. Snippets are held in memory for the active page session only and are not yet connected to the separately implemented backend API.
+The frontend provides the product UX and workflow. Supabase Auth handles browser sign-in, and authenticated snippet requests are sent to the backend API. Password recovery/change screens remain placeholders.
 
 ## Project status
 
 The app is operational as a frontend prototype with the following implemented behaviors:
 
 - Landing page for product marketing and calls to action
-- Login, signup, and password pages retained as non-functional placeholders
+- Supabase password and configured OAuth sign-in/signup
 - Terms acceptance UI on signup
 - Privacy Policy and Terms and Conditions pages linked from the landing footer
 - Dashboard workspace with snippet overview, stats, and empty states
 - Snippet create, search, filter, display, and delete functionality
-- Session-only snippet handling; snippets are not saved to browser storage
+- Protected workspace routes with API-backed snippet CRUD
 - Responsive dark UI with route-based navigation
 
 The following are still placeholders or intentionally unimplemented:
 
-- Frontend snippet workflows are not connected to the backend API or Supabase persistence
-- Client authentication and password recovery are not connected to the server
-- User accounts and synchronization across devices
+- Password recovery/change and account deletion
+- Tag/category editing independent of snippets
 - Production deployment pipeline and distributed rate-limit storage
 
 ## Repository layout
@@ -70,32 +69,33 @@ D:\DevVault
 - express-rate-limit
 - dotenv
 - @supabase/supabase-js
+- cors
 
 ## Frontend overview
 
-The frontend app lives entirely under `Client/` and is designed as a Vite SPA with route-driven screens. Authentication screens are placeholders and do not currently connect to the server. Snippets and profile settings remain a browser-local prototype and are not synchronized with the API.
+The frontend app lives entirely under `Client/` and is designed as a Vite SPA with route-driven screens. Supabase Auth manages sign-in, and the frontend calls the Express API with the user's access token. Snippets are stored in the configured Supabase database; profile settings remain local to the browser.
 
 ### Main routes
 
 - `/` — marketing landing page
-- `/Login` — login placeholder
-- `/Signup` — signup placeholder with terms and privacy acceptance UI
+- `/Login` — Supabase password/OAuth login
+- `/Signup` — Supabase account creation
 - `/forgot-password` — password-recovery placeholder
 - `/change-password` — password-change placeholder
 - `/privacy-policy` — privacy notice
 - `/terms` — Terms and Conditions
-- `/Home` — dashboard workspace
-- `/Snippet` — snippet workspace and creation tool
+- `/Home` — authenticated dashboard workspace
+- `/Snippet` — authenticated snippet workspace and creation tool
 - `/Tags` — browse and search snippet tags
 - `/Categorie` — browse snippet categories
-- `/Setting` — local profile and vault settings
+- `/Setting` — local profile, account, and vault settings
 - `*` — not-found page
 
 The route URLs are intentionally capitalized to match the existing app behavior and are preserved in the frontend implementation.
 
 ### Data model and session state
 
-Snippet data is held in memory while the current page session is open. It is discarded on reload or close; persistent backend storage will be connected later. Profile settings are stored separately in browser `localStorage`.
+Snippet records are fetched from the API for the authenticated account and mutations are saved to the Supabase database through the server. The frontend keeps a shared in-memory view of the loaded records. Profile settings are stored separately in browser `localStorage`.
 
 Each snippet record includes:
 
@@ -108,11 +108,11 @@ Each snippet record includes:
 - `tags`
 - `createdAt`
 
-The current session-only store is temporary UI state, not durable storage. Do not enter secrets in snippets.
+Do not enter secrets in snippets.
 
 ## Server overview
 
-The `Server/` package implements authenticated snippet CRUD endpoints, input validation, pagination, JSON payload limits, and IP/account rate limiting. Supabase Auth verifies bearer access tokens, and snippet data is stored in the `public.snippets` table created by the server migration. The frontend is not yet wired to these endpoints or the server's authentication flow.
+The `Server/` package implements authenticated snippet CRUD endpoints, input validation, pagination, JSON payload limits, IP/account rate limiting, and a configurable CORS origin allowlist. Supabase Auth verifies bearer access tokens, and snippet data is stored in the `public.snippets` table created by the server migration.
 
 ## Environment and configuration
 
@@ -123,13 +123,22 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 SUPABASE_SECRET_KEY=your-supabase-secret-key
 PORT=3000
+CORS_ORIGINS=http://localhost:5173
 ```
 
-The Supabase secret key is server-only; do not expose it to frontend code or commit it. The client has no Supabase configuration or authentication SDK; do not add server credentials to client environment variables.
+The Supabase secret key is server-only; do not expose it to frontend code or commit it. Copy `Client/.env.example` to `Client/.env.local` and set `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_PUBLISHABLE_KEY`. The frontend publishable key is public; never add server credentials to client environment variables. Set `CORS_ORIGINS` to the exact deployed frontend origin(s).
 
 ## Quick start
 
-### Frontend
+### Start both packages
+
+```bash
+cd Server
+npm install
+npm start
+```
+
+In a second terminal:
 
 ```bash
 cd Client
@@ -198,11 +207,11 @@ Reusable UI lives under `Client/src/components/`; client-wide hooks, storage hel
 
 ### Current implementation pattern
 
-The app uses route-level composition and a shared in-memory snippet store. Authentication screens are placeholders and there is no global auth context or protected route. Snippet state is discarded when the page reloads; profile settings remain in browser local storage.
+The app uses route-level composition, a Supabase Auth provider, protected workspace routes, and a shared in-memory view store for API-loaded snippets. Server requests carry the signed-in user's access token; profile settings remain in browser local storage.
 
 ### Security posture
 
-The frontend is intentionally a prototype and should not be treated as production-safe for sensitive data. Snippet state is session-only, client authentication is not implemented, and routes are not protected. The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
+The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
 
 ## Documentation
 
@@ -212,18 +221,16 @@ For the detailed implementation and engineering notes, see:
 - [Backend guide](Server/Backend.md)
 - [Contribution guide](CONTRIBUTING.md)
 
-The frontend guide covers architecture, routes, authentication placeholders, session-only snippet state, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, validation, rate limiting, and deployment.
+The frontend guide covers architecture, routes, Supabase authentication, API-backed snippet state, and development. The backend guide covers configuration, database migrations, authentication, CRUD endpoints, CORS, validation, rate limiting, and deployment.
 
 ## Recommended next steps
 
 Potential next steps include:
 
-1. Connect snippet workflows to the backend API and migrate existing browser snippets to authenticated storage
-2. Add protected frontend routes and user-facing API error handling
-3. Add end-to-end tests for the frontend/API integration
-4. Configure a shared rate-limit store and production deployment settings
-5. Review the legal pages and establish contact and consent-retention processes before production
+1. Add end-to-end tests for the frontend/API integration
+2. Configure a shared rate-limit store and production deployment settings
+3. Review the legal pages and establish contact and consent-retention processes before production
 
 ## Summary
 
-DevVault includes a polished frontend and an authenticated, rate-limited snippet API. Client authentication and snippet flows are not connected to the server, so authenticated UI and synchronized persistence remain future integration work before the full product is production-ready.
+DevVault includes a polished frontend and an authenticated, rate-limited snippet API. Supabase Auth and API-backed snippet workflows are connected; deployment-specific Supabase, CORS, and production configuration still need to be set up before launch.
