@@ -177,7 +177,9 @@ The existing capitalization is intentional and must be preserved. Routes use laz
 
 ### Authentication
 
-Login and signup use Supabase Auth in the browser. Password login/signup and GitHub/Google OAuth (when enabled in the Supabase project) establish the session; the backend validates its access token on every protected API request. Password recovery sends a Supabase reset email and password change requires a valid session from that flow.
+Login and signup use Supabase Auth in the browser. Password login/signup and GitHub/Google OAuth establish the session; the backend validates its access token on every protected API request. OAuth buttons require Terms acceptance, disable while redirecting, and return to `/Home`. Password recovery sends a Supabase reset email and password change requires a valid session from that flow.
+
+For OAuth to work, enable Google and/or GitHub under Supabase **Authentication → Sign In / Providers**, configure each provider's client ID and secret, and add the frontend origins to **Authentication → URL Configuration** (including `http://localhost:5173` for local development and the exact deployed origin). Set the provider application's callback URL to the Supabase callback URL displayed on its provider settings page. The post-login `/Home` URL must also be on the Supabase redirect allowlist.
 
 ### Dashboard
 

@@ -1,4 +1,5 @@
 const accountService = require('../services/account')
+const { createAdminSupabaseClient } = require('../lib/supabaseClient')
 const { HttpError } = require('../utils/httpError')
 
 async function deleteAccount(req, res) {
@@ -6,7 +7,7 @@ async function deleteAccount(req, res) {
     throw new HttpError(400, 'CONFIRMATION_REQUIRED', 'Type DELETE to confirm account deletion.')
   }
 
-  await accountService.remove(req.supabase, req.user.id, req.accessToken)
+  await accountService.remove(createAdminSupabaseClient(), req.user.id, req.accessToken)
   res.status(204).end()
 }
 

@@ -129,6 +129,10 @@ CORS_ORIGINS=http://localhost:5173
 
 The Supabase secret key is server-only; do not expose it to frontend code or commit it. Copy `Client/.env.example` to `Client/.env.local` and set `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_PUBLISHABLE_KEY`. The frontend publishable key is public; never add server credentials to client environment variables. Set `CORS_ORIGINS` to the exact deployed frontend origin(s).
 
+### OAuth provider setup
+
+OAuth buttons use Supabase Auth. Enable Google and/or GitHub in the Supabase Dashboard under **Authentication → Sign In / Providers**, then add that provider's OAuth client ID and secret. Add `http://localhost:5173` and the deployed frontend origin to **Authentication → URL Configuration** redirect URLs. Configure the OAuth application callback URL to the Supabase callback displayed in the provider settings. The redirect to `/Home` after sign-in must be allowed.
+
 ## Quick start
 
 ### Start both packages

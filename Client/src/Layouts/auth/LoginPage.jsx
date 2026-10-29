@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [oauthProvider, setOauthProvider] = useState('')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -49,6 +50,9 @@ const LoginPage = () => {
       setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
       return
     }
+
+    setIsSubmitting(true)
+    setOauthProvider(provider)
     try {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider,
@@ -57,6 +61,9 @@ const LoginPage = () => {
       if (oauthError) setError(oauthError.message)
     } catch (oauthError) {
       setError(oauthError.message || `Could not start ${provider} sign-in.`)
+    } finally {
+      setIsSubmitting(false)
+      setOauthProvider('')
     }
   }
 
@@ -114,6 +121,7 @@ const LoginPage = () => {
               {(error || sessionError) && <p role="alert" className="text-sm text-red-400">{error || sessionError}</p>}
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full cursor-pointer rounded-lg bg-[#6E6BF4] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8280F7] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? 'Signing in...' : 'Log in'}
@@ -141,24 +149,24 @@ const LoginPage = () => {
               </label>
               <button
                 type="button"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !acceptedTerms}
                 onClick={() => handleOAuthSignIn('github')}
                 className="w-full cursor-pointer rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="inline-flex items-center justify-center gap-2">
                   <AuthProviderIcon provider="github" />
-                Continue with GitHub
+                {oauthProvider === 'github' ? 'Redirecting to GitHub...' : 'Continue with GitHub'}
                 </span>
               </button>
               <button
                 type="button"
-                disabled={!acceptedTerms}
+                disabled={isSubmitting || !acceptedTerms}
                 onClick={() => handleOAuthSignIn('google')}
                 className="w-full cursor-pointer rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="inline-flex items-center justify-center gap-2">
                   <AuthProviderIcon provider="google" />
-                Continue with Google
+                {oauthProvider === 'google' ? 'Redirecting to Google...' : 'Continue with Google'}
                 </span>
               </button>
             </div>

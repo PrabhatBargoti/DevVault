@@ -24,7 +24,7 @@ async function authenticate(req, _res, next) {
       return next(new HttpError(401, 'UNAUTHORIZED', 'The bearer token is invalid or expired.'))
     }
 
-    req.supabase = createDatabaseSupabaseClient()
+    req.supabase = createDatabaseSupabaseClient(match[1])
     req.user = data.user
     req.accessToken = match[1]
     return next()

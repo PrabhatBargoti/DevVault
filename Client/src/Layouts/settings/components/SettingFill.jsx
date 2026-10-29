@@ -180,7 +180,7 @@ const SettingFill = () => {
               aria-selected={activeTab === id}
               aria-controls={`${id}-panel`}
               onClick={() => { setActiveTab(id); setError(''); setStatus('') }}
-              className={`inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#6E6BF4] ${
+              className={`inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#6E6BF4] ${
                 activeTab === id
                   ? 'border-[#9290FF] text-[#E7E9EE]'
                   : 'border-transparent text-[#8B93A7] hover:text-[#C7CBD5]'

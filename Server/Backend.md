@@ -89,7 +89,7 @@ Server/
 │   │   ├── account.js         # Confirmed account deletion handler
 │   │   └── snippets.js        # HTTP request/response handling for snippet endpoints
 │   ├── lib/
-│   │   └── supabaseClient.js  # Auth and privileged database client factories
+│   │   └── supabaseClient.js  # User-scoped database and server-only Admin clients
 │   ├── middleware/
 │   │   ├── authenticate.js   # Bearer-token verification and request identity
 │   │   └── errorHandler.js   # Consistent JSON error responses
@@ -107,7 +107,8 @@ Server/
 │   ├── config.toml            # Local Supabase CLI configuration
 │   ├── .gitignore
 │   └── migrations/
-│       └── 20261023014024_create_snippets_table.sql
+│       ├── 20261023014024_create_snippets_table.sql
+│       └── 20261029153359_enable_authenticated_snippet_rls_access.sql
 └── test/
     ├── account.test.js        # Confirmation and account-deletion behavior
     ├── authRoutes.test.js     # Missing-token API protection tests
@@ -134,7 +135,7 @@ PORT=3000
 | --- | --- | --- |
 | `SUPABASE_URL` | Yes | Supabase project URL. HTTPS is required except for `localhost` and `127.0.0.1`. |
 | `SUPABASE_PUBLISHABLE_KEY` | Yes, or legacy alias | Key used by Supabase Auth to verify a user's access token. `SUPABASE_ANON_KEY` is accepted as a fallback. |
-| `SUPABASE_SECRET_KEY` | Yes, or legacy alias | Server-only key used by the database client. `SUPABASE_SERVICE_ROLE_KEY` is accepted as a fallback. Treat either as a privileged secret. |
+| `SUPABASE_SECRET_KEY` | Yes, or legacy alias | Server-only key used only by the Supabase Auth Admin API for account deletion. `SUPABASE_SERVICE_ROLE_KEY` is accepted as a fallback. Treat either as a privileged secret. |
 | `CORS_ORIGINS` | No | Comma-separated exact HTTP(S) origins; defaults to `http://localhost:5173`. Do not include URL paths or trailing slashes. |
 | `PORT` | No | Integer TCP port from 1 through 65535; defaults to `3000`. |
 
@@ -219,9 +220,9 @@ The persistence system is Supabase Postgres, accessed through `@supabase/supabas
 - Check constraints for title, description, code, language, category, and maximum tag count.
 - An index on `(user_id, updated_at desc)` for the user's recent-snippet listing.
 - Row-level security enabled, with per-user policies for select, insert, update, and delete.
-- Data API grants revoked from `anon`, `authenticated`, and `public`; CRUD grants are given to `service_role`.
+- The follow-up migration grants CRUD to `authenticated` (still constrained by RLS) and revokes direct table grants from `anon`, `service_role`, and `public`.
 
-The API first verifies the user token with a publishable/legacy anon key, then uses the secret/service-role key for database operations and account administration. The privileged client bypasses RLS, so service-level ownership filters are a critical application authorization boundary. The migration's RLS policies are present in the schema but do not make these service-role requests user-scoped by themselves.
+The API verifies the user token with a publishable/legacy anon key, then performs snippet queries with a Supabase client carrying that user's bearer token. Database operations therefore run as `authenticated` and are constrained by the migration's owner-based RLS policies as well as service-level ownership filters. The secret/service-role key is used only for the account Admin API.
 
 Queries and mutations live in `src/services/snippets.js`; there is no ORM, model layer, direct SQL in application code, seed data, or transaction abstraction. Supabase's query builder is used; no raw SQL is assembled from request input. The migration includes RLS policies and grants, but the live project is not linked in this workspace, so migration status and live RLS have not been verified.
 
@@ -233,9 +234,9 @@ The only implemented authentication flow is verification of an already-issued Su
 2. `src/middleware/authenticate.js` rejects missing or malformed bearer headers with `401`.
 3. It calls Supabase Auth `getUser(token)` using a client initialized with the publishable key (or legacy anon key).
 4. Invalid, expired, or absent user results produce `401`. Other Supabase errors continue to the shared error handler.
-5. On success, the middleware attaches `req.user`, the verified access token as `req.accessToken`, and a privileged database client as `req.supabase`.
+5. On success, the middleware attaches `req.user`, the verified access token as `req.accessToken`, and a database client carrying that user's bearer token as `req.supabase`.
 
-The API does not implement registration, password login, logout, refresh-token/session handling, cookies, OAuth, or password recovery. These flows are not wired in the frontend either.
+Supabase Auth in the browser handles password and configured OAuth sign-in, signup, reset email, and password change. The API does not issue browser sessions; it verifies each bearer token with Supabase Auth before handling a protected request.
 
 Authentication establishes the identity; authorization limits snippet operations to that identity. The service explicitly filters by `req.user.id`, sets that ID on creates, and returns the same not-found response for a missing snippet and a snippet owned by another user. Do not remove these filters or treat client-supplied user IDs as authority.
 
@@ -328,9 +329,9 @@ Read credentials from environment variables, add placeholder names—not values�
 
 - **Secrets:** The Supabase secret/service-role key is privileged and belongs only in server environment configuration. `.env` files are ignored by Git; never commit real keys.
 - **Authentication:** Supabase verifies bearer tokens. The publishable/anon key alone is not accepted as a user token.
-- **Authorization:** The database client is privileged and bypasses RLS. Explicit `user_id` scoping in the service is essential for every operation.
+- **Authorization:** Snippet queries run using the verified user's JWT, so PostgreSQL RLS applies; service queries also explicitly scope by `user_id`. The server-only secret key is reserved for account administration and must never be exposed to the client.
 - **Input:** Payload, IDs, tags, and pagination are validated. JSON parsing is strict and capped at 128 KiB.
-- **Database:** The migration constrains column lengths and tag cardinality and revokes direct Data API access from ordinary roles. No raw SQL is constructed from user input; data queries use the Supabase query builder.
+- **Database:** Migrations enable owner-scoped RLS, constrain column lengths/tag cardinality, and grant the authenticated role only the operations allowed by RLS. No raw SQL is constructed from user input; data queries use the Supabase query builder.
 - **Account deletion:** `DELETE /api/account` requires authentication and the exact confirmation string `DELETE`, is rate-limited, revokes the current user's sessions, and permanently deletes only the authenticated user.
 - **Rate limits:** Per-process in-memory limits reduce request/write bursts, but do not coordinate across multiple instances or survive restart.
 - **Network:** CORS is limited to exact origins in `CORS_ORIGINS`; configure the deployed frontend origin explicitly. Requests without an `Origin` header (such as server-to-server requests) remain usable. Express `trust proxy` is not enabled; trust proxy only when the deployment topology and trusted proxy are explicitly configured.
@@ -354,7 +355,7 @@ npm ci
 npm start
 ```
 
-Provide `SUPABASE_URL`, a publishable/anon key, a secret/service-role key, and optionally `PORT` and `CORS_ORIGINS` in the runtime environment. Set `CORS_ORIGINS` to the exact browser frontend origin(s), comma-separated. The process validates configuration before listening. Apply the SQL migration intentionally using the Supabase CLI and the intended project:
+Provide `SUPABASE_URL`, a publishable/anon key, a secret/service-role key (used only for account administration), and optionally `PORT` and `CORS_ORIGINS` in the runtime environment. Set `CORS_ORIGINS` to the exact browser frontend origin(s), comma-separated. The process validates configuration before listening. Apply the SQL migrations intentionally using the Supabase CLI and the intended project:
 
 ```powershell
 npx supabase link --project-ref YOUR_PROJECT_REF

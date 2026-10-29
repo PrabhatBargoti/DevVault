@@ -14,6 +14,7 @@ const SignUpPage = () => {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [oauthProvider, setOauthProvider] = useState('')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -57,17 +58,19 @@ const SignUpPage = () => {
       setError('Authentication is not configured. Set the client Supabase URL and publishable key.')
       return
     }
+    setIsSubmitting(true)
+    setOauthProvider(provider)
     try {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo: `${window.location.origin}/Home`,
-          queryParams: { prompt: 'select_account' },
-        },
+        options: { redirectTo: `${window.location.origin}/Home` },
       })
       if (oauthError) setError(oauthError.message)
     } catch (oauthError) {
       setError(oauthError.message || `Could not start ${provider} sign-up.`)
+    } finally {
+      setIsSubmitting(false)
+      setOauthProvider('')
     }
   }
 
@@ -168,21 +171,21 @@ const SignUpPage = () => {
 
               <button
                 type="button"
-                disabled={!acceptedTerms}
+                disabled={!acceptedTerms || isSubmitting}
                 onClick={() => handleOAuthSignUp('github')}
                 className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <AuthProviderIcon provider="github" />
-                Continue with GitHub
+                {oauthProvider === 'github' ? 'Redirecting to GitHub...' : 'Continue with GitHub'}
               </button>
               <button
                 type="button"
-                disabled={!acceptedTerms}
+                disabled={!acceptedTerms || isSubmitting}
                 onClick={() => handleOAuthSignUp('google')}
                 className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#2D3241] bg-transparent py-2.5 text-sm font-semibold text-[#E7E9EE] transition-colors hover:bg-[#1C2029] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <AuthProviderIcon provider="google" />
-                Continue with Google
+                {oauthProvider === 'google' ? 'Redirecting to Google...' : 'Continue with Google'}
               </button>
             </form>
           </div>
