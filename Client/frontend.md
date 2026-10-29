@@ -153,8 +153,8 @@ Pages own UI state and callbacks; `AuthProvider` manages the Supabase session an
 | `/` | `Layouts/landing/pages/LandingPage` | Marketing page | Public |
 | `/Signup` | `Layouts/auth/SignUpPage` | Create an account with Supabase Auth | Public |
 | `/Login` | `Layouts/auth/LoginPage` | Sign in with password or an enabled OAuth provider | Public |
-| `/forgot-password` | `Layouts/auth/ForgotPasswordPage` | Password-recovery placeholder | Public |
-| `/change-password` | `Layouts/auth/ChangePasswordPage` | Password-change placeholder | Public |
+| `/forgot-password` | `Layouts/auth/ForgotPasswordPage` | Send a Supabase password reset email | Public |
+| `/change-password` | `Layouts/auth/ChangePasswordPage` | Update password from an authenticated reset session | Public route; requires a valid session to submit |
 | `/privacy-policy` | `Layouts/legal/PrivacyPolicyPage` | Privacy notice linked from the landing footer | Public |
 | `/terms` | `Layouts/legal/TermsPage` | Terms and Conditions linked from signup and the landing footer | Public |
 | `/Home` | `Layouts/dashboard/pages/DashboardPage` | Account's snippet dashboard | Authenticated |
@@ -164,10 +164,10 @@ Pages own UI state and callbacks; `AuthProvider` manages the Supabase session an
 | `/Snippet?search=<term>` | Same snippets page | Shows matching results; supports category and tag query filters | Authenticated |
 | `/Tags` | `Layouts/tags/pages/TagsPage` | Browse tags and counts from the signed-in account | Authenticated |
 | `/Categorie` | `Layouts/categories/pages/CategoriesPage` | Browse categories and counts from the signed-in account | Authenticated |
-| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details, sign out, or delete account snippets | Authenticated |
+| `/Setting` | `Layouts/settings/pages/SettingsPage` | Edit local profile details, sign out, delete snippets, or permanently delete the account | Authenticated |
 | `*` | `Layouts/not-found/NotFoundPage` | 404 fallback | Public |
 
-The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback. Workspace routes use `RequireAuth` and load the signed-in user's snippets before rendering. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
+The existing capitalization is intentional and must be preserved. Routes use lazy page imports with a shared loading fallback. Workspace routes use `RequireAuth` and load the signed-in user's snippets before rendering; the API independently verifies the bearer token, so client-side route guards are not the security boundary. `vercel.json` rewrites unknown paths to `index.html` for BrowserRouter deep links.
 
 ## Features
 
@@ -177,7 +177,7 @@ The existing capitalization is intentional and must be preserved. Routes use laz
 
 ### Authentication
 
-Login and signup use Supabase Auth in the browser. Password login/signup and GitHub/Google OAuth (when enabled in the Supabase project) establish the session; the backend validates its access token on every snippet request. Password recovery and changing a password remain placeholders.
+Login and signup use Supabase Auth in the browser. Password login/signup and GitHub/Google OAuth (when enabled in the Supabase project) establish the session; the backend validates its access token on every protected API request. Password recovery sends a Supabase reset email and password change requires a valid session from that flow.
 
 ### Dashboard
 
@@ -193,7 +193,7 @@ The tags page derives tags and per-tag snippet counts from the current account's
 
 ### Settings
 
-The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs. Account settings show the signed-in email, support sign-out, and can permanently delete the account's snippets; server account deletion is not implemented.
+The settings page provides Profile and Account tabs; Appearance is intentionally not included. Profile name, email, and an optional PNG/JPG/WebP avatar (up to 1 MB) are saved in browser localStorage under `devvault-profile`. The shared `ProfileAvatar` reads these saved details and refreshes when the profile is saved, including across tabs. Account settings show the signed-in email, support sign-out, delete snippets, and permanently delete the signed-in account after the user types `DELETE` to confirm. The backend revokes that user's sessions before deleting the account.
 
 ## Persistence and data flow
 
@@ -299,6 +299,6 @@ For production, set the client API/Supabase variables and the server `CORS_ORIGI
 
 Implemented: landing page, responsive workspace shell and feature views, client routes, page-level SEO, Supabase password/OAuth sign-in, protected workspace routes, API-backed snippet CRUD and account-scoped persistence, tag and category browsing, local profile settings, account sign-out, and reusable shared controls.
 
-Partial or unimplemented: password recovery/change, server account deletion, tag/category editing independent of snippets, appearance settings, client automated tests, type checking, and client-managed token encryption. Supabase handles session storage; the backend provides account-scoped API access.
+Partial or unimplemented: tag/category editing independent of snippets, appearance settings, client automated tests, type checking, and client-managed token encryption. Supabase handles session storage; the backend provides account-scoped API access.
 
 Before submitting a change, preserve route URLs and existing visual behavior, place code in the owning feature, avoid exposing secrets, retain accessibility and responsive behavior, update this guide for architecture/config changes, run `npm.cmd run lint` and `npm.cmd run build`, and report warnings or unavailable tests honestly.

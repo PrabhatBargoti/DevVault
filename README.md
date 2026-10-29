@@ -7,7 +7,7 @@ This repository is intentionally split into two main areas:
 - `Client/` — the browser application built with React, Vite, and Tailwind
 - `Server/` — the Express API, Supabase integration, and database migration
 
-The frontend provides the product UX and workflow. Supabase Auth handles browser sign-in, and authenticated snippet requests are sent to the backend API. Password recovery/change screens remain placeholders.
+The frontend provides the product UX and workflow. Supabase Auth handles browser sign-in and password reset; authenticated snippet and account deletion requests are sent to the backend API.
 
 ## Project status
 
@@ -15,16 +15,17 @@ The app is operational as a frontend prototype with the following implemented be
 
 - Landing page for product marketing and calls to action
 - Supabase password and configured OAuth sign-in/signup
+- Supabase password recovery and password changes
 - Terms acceptance UI on signup
 - Privacy Policy and Terms and Conditions pages linked from the landing footer
 - Dashboard workspace with snippet overview, stats, and empty states
 - Snippet create, search, filter, display, and delete functionality
 - Protected workspace routes with API-backed snippet CRUD
+- Confirmed account deletion that revokes sessions and removes the account's snippets
 - Responsive dark UI with route-based navigation
 
 The following are still placeholders or intentionally unimplemented:
 
-- Password recovery/change and account deletion
 - Tag/category editing independent of snippets
 - Production deployment pipeline and distributed rate-limit storage
 
@@ -80,8 +81,8 @@ The frontend app lives entirely under `Client/` and is designed as a Vite SPA wi
 - `/` — marketing landing page
 - `/Login` — Supabase password/OAuth login
 - `/Signup` — Supabase account creation
-- `/forgot-password` — password-recovery placeholder
-- `/change-password` — password-change placeholder
+- `/forgot-password` — Supabase password-reset email
+- `/change-password` — update password using a valid reset session
 - `/privacy-policy` — privacy notice
 - `/terms` — Terms and Conditions
 - `/Home` — authenticated dashboard workspace
@@ -211,7 +212,7 @@ The app uses route-level composition, a Supabase Auth provider, protected worksp
 
 ### Security posture
 
-The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID; its server-only Supabase secret key must remain private. The legal pages are initial product documents and require legal review before production use.
+The backend API requires a verified access token and scopes snippet operations to the authenticated user's ID. Account deletion is authenticated, explicitly confirmed, and performed with the server-only Supabase secret key, which must remain private. Database access uses Supabase's query builder; request data is not interpolated into raw SQL. The legal pages are initial product documents and require legal review before production use.
 
 ## Documentation
 

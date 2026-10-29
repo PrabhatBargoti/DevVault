@@ -71,3 +71,8 @@ export const updateSnippet = async (id, updates) => {
 }
 
 export const deleteSnippet = (id) => request(`/snippets/${encodeURIComponent(id)}`, { method: 'DELETE' })
+
+export const deleteAccount = () => request('/account', {
+  method: 'DELETE',
+  body: JSON.stringify({ confirmation: 'DELETE' }),
+})

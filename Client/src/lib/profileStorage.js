@@ -18,3 +18,8 @@ export const saveProfile = (profile) => {
   window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
   window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT))
 }
+
+export const clearSavedProfile = () => {
+  window.localStorage.removeItem(PROFILE_STORAGE_KEY)
+  window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT))
+}

@@ -86,6 +86,7 @@ Server/
 │   ├── config/
 │   │   └── env.js             # Required-variable, URL and port validation
 │   ├── controllers/
+│   │   ├── account.js         # Confirmed account deletion handler
 │   │   └── snippets.js        # HTTP request/response handling for snippet endpoints
 │   ├── lib/
 │   │   └── supabaseClient.js  # Auth and privileged database client factories
@@ -93,8 +94,10 @@ Server/
 │   │   ├── authenticate.js   # Bearer-token verification and request identity
 │   │   └── errorHandler.js   # Consistent JSON error responses
 │   ├── routes/
+│   │   ├── account.js         # Authenticated, rate-limited account deletion route
 │   │   └── snippets.js        # Snippet routes and write-rate-limit placement
 │   ├── services/
+│   │   ├── account.js         # Session revocation and account deletion
 │   │   └── snippets.js        # Supabase snippet queries and ownership filters
 │   ├── utils/
 │   │   └── httpError.js       # Error type carrying HTTP status and code
@@ -106,6 +109,8 @@ Server/
 │   └── migrations/
 │       └── 20261023014024_create_snippets_table.sql
 └── test/
+    ├── account.test.js        # Confirmation and account-deletion behavior
+    ├── authRoutes.test.js     # Missing-token API protection tests
     └── snippetValidation.test.js # Unit tests for snippet validators
 ```
 
@@ -163,7 +168,7 @@ Controller serializes the established JSON response
 
 Unknown paths are converted to a `404` `HttpError`; the final error middleware handles route and parsing errors. Express 5 forwards rejected promises from async handlers to this handler.
 
-The router authenticates all five routes before route-specific processing. Write rate limits run before controller validation. The service receives the database client and user ID from the authenticated request; it adds a `user_id` filter to reads, updates, and deletes and sets `user_id` during insertion.
+The snippets and account routers authenticate requests before route-specific processing. Write rate limits run before controller validation. The snippet service receives the database client and user ID from the authenticated request; it adds a `user_id` filter to reads, updates, and deletes and sets `user_id` during insertion. Account deletion uses the verified user ID and access token, revokes that user's sessions, and permanently deletes that user through the server-only Supabase Admin API.
 
 ## 7. API routes and endpoints
 
@@ -176,6 +181,7 @@ Base URL for local development: `http://localhost:3000`. All routes below requir
 | `GET` | `/api/snippets/:id` | `getSnippet` | Read one owned snippet by UUID. Returns `{ "data": snippet }`. | `200` |
 | `PATCH` | `/api/snippets/:id` | `updateSnippet` | Update a non-empty subset of editable fields. Returns `{ "data": snippet }`. | `200` |
 | `DELETE` | `/api/snippets/:id` | `deleteSnippet` | Delete one owned snippet; response body is empty. | `204` |
+| `DELETE` | `/api/account` | `deleteAccount` | Permanently delete the authenticated account and its cascading snippet rows. Requires JSON `{ "confirmation": "DELETE" }`; revokes active sessions first. | `204` |
 
 Snippet responses contain `id`, `title`, `description`, `code`, `language`, `category`, `tags`, `created_at`, and `updated_at`. `user_id` is not included in the selected response fields. IDs and timestamps are managed by the database.
 
@@ -194,13 +200,13 @@ Unknown fields are rejected. The request JSON body limit is 128 KiB. A malformed
 
 ## 8. Controllers and request handlers
 
-`src/controllers/snippets.js` contains the HTTP-facing functions called by `src/routes/snippets.js`. Controllers read authenticated context (`req.user`, `req.supabase`), invoke the relevant validator and service operation, and write the status and response body. They do not initialize database clients or duplicate SQL/PostgREST operations.
+`src/controllers/snippets.js` contains snippet HTTP handlers; `src/controllers/account.js` handles confirmed account deletion. Controllers read authenticated context (`req.user`, `req.supabase`, and for account deletion `req.accessToken`), invoke service operations, and write the response. They do not initialize database clients or build SQL.
 
 Validation occurs in controllers after route authentication. The create, update, get, list, and delete response shapes and status codes remain unchanged by the controller extraction. Async service or validation errors are allowed to propagate to Express 5's error middleware.
 
 ## 9. Services and business logic
 
-`src/services/snippets.js` is the snippet data-access and operation layer. It exports `list`, `create`, `get`, `update`, and `remove`. It builds Supabase queries against `snippets`, selects a fixed set of response fields, and filters operations by both snippet ID and authenticated user ID where applicable.
+`src/services/snippets.js` is the snippet data-access and operation layer. It exports `list`, `create`, `get`, `update`, and `remove`. It builds Supabase queries against `snippets`, selects a fixed set of response fields, and filters operations by both snippet ID and authenticated user ID where applicable. `src/services/account.js` revokes the authenticated user's sessions and permanently deletes only that user using the Supabase Admin API.
 
 The service translates missing rows for get/update/delete to a `404 SNIPPET_NOT_FOUND` error. Supabase query errors become a generic `DATABASE_ERROR` server error whose underlying cause is available to server-side logging. There are no multi-query transactions or separate service integrations in the current implementation.
 
@@ -215,9 +221,9 @@ The persistence system is Supabase Postgres, accessed through `@supabase/supabas
 - Row-level security enabled, with per-user policies for select, insert, update, and delete.
 - Data API grants revoked from `anon`, `authenticated`, and `public`; CRUD grants are given to `service_role`.
 
-The API first verifies the user token with a publishable/legacy anon key, then uses the secret/service-role key for database operations. The privileged client bypasses RLS, so service-level ownership filters are a critical application authorization boundary. The migration's RLS policies are present in the schema but do not make these service-role requests user-scoped by themselves.
+The API first verifies the user token with a publishable/legacy anon key, then uses the secret/service-role key for database operations and account administration. The privileged client bypasses RLS, so service-level ownership filters are a critical application authorization boundary. The migration's RLS policies are present in the schema but do not make these service-role requests user-scoped by themselves.
 
-Queries and mutations live in `src/services/snippets.js`; there is no ORM, model layer, direct SQL in application code, seed data, or transaction abstraction. Supabase's query builder is used; no raw SQL is assembled from request input. This task did not connect to or modify a remote database, and migrations have not been applied or verified against a project.
+Queries and mutations live in `src/services/snippets.js`; there is no ORM, model layer, direct SQL in application code, seed data, or transaction abstraction. Supabase's query builder is used; no raw SQL is assembled from request input. The migration includes RLS policies and grants, but the live project is not linked in this workspace, so migration status and live RLS have not been verified.
 
 ## 11. Authentication and authorization
 
@@ -227,7 +233,7 @@ The only implemented authentication flow is verification of an already-issued Su
 2. `src/middleware/authenticate.js` rejects missing or malformed bearer headers with `401`.
 3. It calls Supabase Auth `getUser(token)` using a client initialized with the publishable key (or legacy anon key).
 4. Invalid, expired, or absent user results produce `401`. Other Supabase errors continue to the shared error handler.
-5. On success, the middleware attaches `req.user` and a privileged database client as `req.supabase`.
+5. On success, the middleware attaches `req.user`, the verified access token as `req.accessToken`, and a privileged database client as `req.supabase`.
 
 The API does not implement registration, password login, logout, refresh-token/session handling, cookies, OAuth, or password recovery. These flows are not wired in the frontend either.
 
@@ -289,23 +295,23 @@ There are no configured development-watch, build, lint, type-check, migration, o
 
 ## 16. Testing and quality assurance
 
-Tests use Node's built-in test runner. `test/snippetValidation.test.js` exercises snippet creation/update validation, required fields, rejected fields/tags, UUID checking, and pagination defaults/bounds. Run the tests from `Server/`:
+Tests use Node's built-in test runner. `test/snippetValidation.test.js` exercises snippet creation/update validation, required fields, rejected fields/tags, UUID checking, and pagination defaults/bounds. `test/account.test.js` covers explicit confirmation and session-revocation-before-deletion; `test/authRoutes.test.js` verifies missing tokens are rejected by both API routers. Run the tests from `Server/`:
 
 ```powershell
 npm test
 ```
 
-There is no configured lint or type-check command. Tests do not currently cover HTTP-level authentication, rate-limit behavior, Supabase Auth, real database operations, migration execution, deployment, or frontend/API integration. The validation tests use no external service or database.
+There is no configured lint or type-check command. Tests do not cover valid-token authentication against Supabase, real database operations, migration execution, deployment, or frontend/API integration. The tests use no external service or database.
 
 ## 17. Adding an API endpoint
 
 For a new authenticated snippet operation, follow the existing boundaries:
 
-1. Add the endpoint to `src/routes/snippets.js`; preserve route ordering and middleware placement.
+1. Add the endpoint to the appropriate router under `src/routes/`; preserve route ordering and middleware placement.
 2. Keep authentication on the router. Add write limits to state-changing methods where appropriate.
 3. Add or extend a function in `src/validators/snippets.js` for untrusted path, query, or body data.
 4. Add the HTTP handler to `src/controllers/snippets.js`. Validate the request, pass `req.user.id` and `req.supabase` to the service, and retain the established response/error contract.
-5. Implement cohesive database behavior in `src/services/snippets.js`; use fixed selected fields and explicit ownership filters.
+5. Implement cohesive database behavior in the appropriate service; use fixed selected fields and explicit ownership filters.
 6. Throw `HttpError` for expected client errors. Let unexpected errors reach `errorHandler`.
 7. Add focused tests under `test/` and run `npm test`.
 8. Keep browser origins limited to known frontend origins and never expose server-only keys to the browser.
@@ -324,7 +330,8 @@ Read credentials from environment variables, add placeholder names—not values�
 - **Authentication:** Supabase verifies bearer tokens. The publishable/anon key alone is not accepted as a user token.
 - **Authorization:** The database client is privileged and bypasses RLS. Explicit `user_id` scoping in the service is essential for every operation.
 - **Input:** Payload, IDs, tags, and pagination are validated. JSON parsing is strict and capped at 128 KiB.
-- **Database:** The migration constrains column lengths and tag cardinality and revokes direct Data API access from ordinary roles. No raw SQL is constructed from user input.
+- **Database:** The migration constrains column lengths and tag cardinality and revokes direct Data API access from ordinary roles. No raw SQL is constructed from user input; data queries use the Supabase query builder.
+- **Account deletion:** `DELETE /api/account` requires authentication and the exact confirmation string `DELETE`, is rate-limited, revokes the current user's sessions, and permanently deletes only the authenticated user.
 - **Rate limits:** Per-process in-memory limits reduce request/write bursts, but do not coordinate across multiple instances or survive restart.
 - **Network:** CORS is limited to exact origins in `CORS_ORIGINS`; configure the deployed frontend origin explicitly. Requests without an `Origin` header (such as server-to-server requests) remain usable. Express `trust proxy` is not enabled; trust proxy only when the deployment topology and trusted proxy are explicitly configured.
 - **Transport:** The application itself does not configure TLS; terminate HTTPS at a trusted hosting platform or proxy in production.

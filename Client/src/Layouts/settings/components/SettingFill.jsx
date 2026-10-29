@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Check, ImagePlus, LockKeyhole, LogOut, ShieldCheck, Trash2, UserRound } from 'lucide-react'
-import { getSavedProfile, saveProfile as persistProfile } from '../../../lib/profileStorage'
+import { clearSavedProfile, getSavedProfile, saveProfile as persistProfile } from '../../../lib/profileStorage'
 import { clearSnippets, getSnippets, setSnippets } from '../../../lib/snippetStore'
-import { deleteSnippet as deleteSnippetRequest, listSnippets } from '../../../lib/snippetApi'
+import { deleteAccount as deleteAccountRequest, deleteSnippet as deleteSnippetRequest, listSnippets } from '../../../lib/snippetApi'
 import { useAuth } from '../../../lib/useAuth'
 
 const AVATAR_SIZE_LIMIT = 1024 * 1024
@@ -18,22 +18,33 @@ const SettingFill = () => {
   const [error, setError] = useState('')
   const [avatarError, setAvatarError] = useState('')
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false)
+  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false)
+  const [deleteAccountConfirmation, setDeleteAccountConfirmation] = useState('')
   const fileInputRef = useRef(null)
   const cancelClearRef = useRef(null)
+  const cancelDeleteAccountRef = useRef(null)
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, signOut, clearLocalSession } = useAuth()
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
   useEffect(() => {
-    if (!isClearDialogOpen) return undefined
+    if (!isClearDialogOpen && !isDeleteAccountDialogOpen) return undefined
 
-    cancelClearRef.current?.focus()
+    if (isDeleteAccountDialogOpen) {
+      cancelDeleteAccountRef.current?.focus()
+    } else {
+      cancelClearRef.current?.focus()
+    }
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') setIsClearDialogOpen(false)
+      if (event.key === 'Escape') {
+        setIsClearDialogOpen(false)
+        setIsDeleteAccountDialogOpen(false)
+      }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isClearDialogOpen])
+  }, [isClearDialogOpen, isDeleteAccountDialogOpen])
 
   const updateProfile = (event) => {
     setProfile((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -109,6 +120,39 @@ const SettingFill = () => {
       setError(signOutError.message || 'Could not sign out. Please try again.')
     } finally {
       setIsSigningOut(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteAccountConfirmation !== 'DELETE') {
+      setError('Type DELETE exactly to confirm account deletion.')
+      return
+    }
+
+    setError('')
+    setIsDeletingAccount(true)
+    let accountDeleted = false
+    try {
+      await deleteAccountRequest()
+      accountDeleted = true
+      clearSnippets()
+      try {
+        clearSavedProfile()
+      } catch (profileCleanupError) {
+        console.error('The account was deleted, but local profile cleanup failed:', profileCleanupError)
+      }
+      await clearLocalSession()
+      navigate('/', { replace: true })
+    } catch (deleteError) {
+      if (accountDeleted) {
+        setIsDeleteAccountDialogOpen(false)
+        setDeleteAccountConfirmation('')
+        setError('Your account was deleted, but this browser could not clear its local session. Reload the page before continuing.')
+      } else {
+        setError(deleteError.message || 'Could not delete your account. Please try again.')
+      }
+    } finally {
+      setIsDeletingAccount(false)
     }
   }
 
@@ -317,6 +361,28 @@ const SettingFill = () => {
                 </div>
                 {error && <p role="alert" className="mt-4 text-sm text-[#F08C97]">{error}</p>}
               </div>
+
+              <div className="rounded-xl border border-[#8F3943]/70 bg-[#171318] p-4 sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#352127] text-[#E38A91]">
+                      <AlertTriangle aria-hidden="true" size={18} />
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#F08C97]">Delete account</h3>
+                      <p className="mt-1 max-w-md text-sm leading-5 text-[#A4878B]">Permanently delete your account and all saved snippets. This action cannot be undone.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setError(''); setDeleteAccountConfirmation(''); setIsDeleteAccountDialogOpen(true) }}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#8F3943] px-4 text-sm font-semibold text-[#F08C97] transition-colors hover:bg-[#352127] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E87582]"
+                  >
+                    <Trash2 aria-hidden="true" size={15} />
+                    Delete account
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         )}
@@ -357,6 +423,60 @@ const SettingFill = () => {
               >
                 <Trash2 aria-hidden="true" size={15} />
                 Clear snippets
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {isDeleteAccountDialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => event.target === event.currentTarget && !isDeletingAccount && setIsDeleteAccountDialogOpen(false)}
+        >
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-account-title"
+            aria-describedby="delete-account-description"
+            className="w-full max-w-md rounded-2xl border border-[#8F3943] bg-[#11141B] p-5 shadow-2xl sm:p-6"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#352127] text-[#E38A91]">
+              <Trash2 aria-hidden="true" size={19} />
+            </div>
+            <h2 id="delete-account-title" className="mt-4 text-base font-semibold text-[#E7E9EE]">Permanently delete your account?</h2>
+            <p id="delete-account-description" className="mt-2 text-sm leading-5 text-[#8B93A7]">
+              Your account, all saved snippets, and active sessions will be permanently deleted. Type DELETE to confirm.
+            </p>
+            <label htmlFor="delete-account-confirmation" className="mt-4 block text-sm font-semibold text-[#E7E9EE]">
+              Confirmation
+              <input
+                id="delete-account-confirmation"
+                autoComplete="off"
+                value={deleteAccountConfirmation}
+                onChange={(event) => setDeleteAccountConfirmation(event.target.value)}
+                className={inputClassName}
+                placeholder="Type DELETE"
+              />
+            </label>
+            {error && <p role="alert" className="mt-3 text-sm text-[#F08C97]">{error}</p>}
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                ref={cancelDeleteAccountRef}
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => { setIsDeleteAccountDialogOpen(false); setDeleteAccountConfirmation(''); setError('') }}
+                className="min-h-10 rounded-lg border border-[#2B3040] px-4 text-sm font-medium text-[#C7CBD5] transition-colors hover:bg-[#1C2029] disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6E6BF4]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingAccount || deleteAccountConfirmation !== 'DELETE'}
+                onClick={handleDeleteAccount}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#8F3943] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#A8444F] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E87582]"
+              >
+                <Trash2 aria-hidden="true" size={15} />
+                {isDeletingAccount ? 'Deleting account...' : 'Permanently delete'}
               </button>
             </div>
           </section>

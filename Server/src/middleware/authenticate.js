@@ -26,6 +26,7 @@ async function authenticate(req, _res, next) {
 
     req.supabase = createDatabaseSupabaseClient()
     req.user = data.user
+    req.accessToken = match[1]
     return next()
   } catch (error) {
     return next(error)

@@ -54,6 +54,11 @@ export const AuthProvider = ({ children }) => {
         const { error: signOutError } = await supabase.auth.signOut()
         if (signOutError) throw signOutError
       },
+      clearLocalSession: async () => {
+        if (!supabase) throw new Error('Supabase authentication is not configured.')
+        const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
+        if (signOutError) throw signOutError
+      },
     }}>
       {children}
     </AuthContext.Provider>
