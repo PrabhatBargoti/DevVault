@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api').replace(/\/+$/, '')
+const apiBaseUrl = (import.meta.env.API_BASE_URL || 'http://localhost:3000/api').replace(/\/+$/, '')
 
 const toClientSnippet = (snippet) => ({
   ...snippet,
@@ -10,7 +10,7 @@ const toClientSnippet = (snippet) => ({
 
 const request = async (path, options = {}) => {
   if (!supabase) {
-    throw new Error('Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in Client/.env.local.')
+    throw new Error('Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in Client/.env.local.')
   }
 
   const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -28,7 +28,7 @@ const request = async (path, options = {}) => {
       },
     })
   } catch {
-    throw new Error('Could not reach the DevVault API. Check VITE_API_BASE_URL and that the server is running.')
+    throw new Error('Could not reach the DevVault API. Check API_BASE_URL and that the server is running.')
   }
 
   if (response.status === 204) return null
