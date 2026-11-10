@@ -86,11 +86,11 @@ npm run preview
 
 On Windows systems where PowerShell blocks `npm.ps1`, use `npm.cmd run dev`, `npm.cmd run build`, or `npm.cmd run lint`.
 
-Copy `Client/.env.example` to `Client/.env.local` and set the Supabase project URL and publishable key. For local use, copy `Server/.env.example` to `Server/.env` and add the Supabase URL, publishable key, and server-only secret key. The frontend uses only the publishable key; never put the server secret key in a `VITE_*` variable.
+Copy `Client/.env.example` to `Client/.env.local` and set the Supabase URL and publishable key. The Vite config explicitly exposes only `API_BASE_URL`, `SUPABASE_URL`, and `SUPABASE_PUBLISHABLE_KEY` to client code. For local use, copy `Server/.env.example` to `Server/.env` and add the Supabase URL, publishable key, and server-only secret key. Never put the server secret key in client environment variables.
 
 ## Environment
 
-`VITE_API_BASE_URL` is the API base ending in `/api` (default `http://localhost:3000/api`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` configure browser authentication. These values are public; the Supabase secret/service-role key belongs only in `Server/.env`.
+`API_BASE_URL` is the API base ending in `/api` (default `http://localhost:3000/api`). `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` configure browser authentication. These values are public; the Supabase secret/service-role key belongs only in `Server/.env`.
 
 ## Structure
 
